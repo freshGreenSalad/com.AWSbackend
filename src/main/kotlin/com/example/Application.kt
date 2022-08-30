@@ -2,7 +2,7 @@ package com.example
 
 
 import aws.sdk.kotlin.services.dynamodb.DynamoDbClient
-import com.example.awsServices.profile.dynamoDbProfileDataSource
+import com.example.awsServices.dynamoDb.dynamoDbProfileDataSource
 import io.ktor.server.application.*
 import com.example.plugins.*
 import com.plcoding.security.hashing.SHA256HashingService
@@ -14,8 +14,7 @@ fun main(args: Array<String>): Unit =
 
 @Suppress("unused") // application.conf references the main function. This annotation prevents the IDE from marking it as unused.
 fun Application.module() {
-    val client = DynamoDbClient { region = "ap-southeast-2" }
-    val profileDataSource = dynamoDbProfileDataSource(client)
+    val profileDataSource = dynamoDbProfileDataSource()
     val tokenService = JwtTokenService()
     val tokenConfig = TokenConfig(
         issuer = environment.config.property("jwt.issuer").getString(),

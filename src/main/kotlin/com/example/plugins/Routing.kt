@@ -1,18 +1,16 @@
 package com.example.plugins
 
 import com.example.*
-import com.example.awsServices.dynamoDB.PutProflieInDynamoDB
-import com.example.awsServices.profile.ProfileDataSource
-import com.example.awsServices.profile.dynamoDbProfileDataSource
+import com.example.Data.models.ProfileDataSourceInterface
+import com.example.awsServices.dynamoDb.*
 import com.plcoding.security.hashing.HashingService
 import com.plcoding.security.token.TokenConfig
 import com.plcoding.security.token.TokenService
 import io.ktor.server.routing.*
 import io.ktor.server.application.*
-import io.ktor.server.http.content.*
 
 fun Application.configureRouting(
-    ProfileDataSource: ProfileDataSource,
+    ProfileDataSource: ProfileDataSourceInterface,
     hashingService: HashingService,
     tokenService: TokenService,
     tokenConfig: TokenConfig
@@ -29,7 +27,15 @@ fun Application.configureRouting(
         //used this to upload the test images to the workerImage folder on s3
         putWorkerImage()
 
-        //put key as new row in dynamodb
-        PutProflieInDynamoDB(ProfileDataSource)
+        //puts a Profile into the dynamodb database
+        PutProflieInDynamoDB(ProfileDataSource,hashingService)
+
+        //checks a password email combination and returns a JWT
+        authoriseUser(ProfileDataSource,hashingService,tokenService,tokenConfig)
+
+        testGetProfileFromDynamodb(ProfileDataSource)
+
+        //tests the authentication of the JWT
+        authenticate()
     }
 }
