@@ -3,6 +3,7 @@ package com.example.plugins
 import com.example.*
 import com.example.Data.models.ProfileDataSourceInterface
 import com.example.awsServices.dynamoDb.*
+import com.example.awsServices.ses.testSendEmail
 import com.plcoding.security.hashing.HashingService
 import com.plcoding.security.token.TokenConfig
 import com.plcoding.security.token.TokenService
@@ -37,5 +38,8 @@ fun Application.configureRouting(
 
         //tests the authentication of the JWT
         authenticate()
+
+        //test send emil
+        testSendEmail()
     }
 }

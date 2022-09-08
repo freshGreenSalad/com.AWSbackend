@@ -27,6 +27,7 @@ dependencies {
     //aws
     implementation("aws.sdk.kotlin:s3:0.17.1-beta")
     implementation("aws.sdk.kotlin:dynamodb:0.17.1-beta")
+    implementation("aws.sdk.kotlin:ses:0.17.1-beta")
 
     //ktor
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
