@@ -1,4 +1,4 @@
-package com.example.awsServices.dynamoDb
+package com.example.awsServices.dynamoDb.Employer
 
 import aws.sdk.kotlin.services.dynamodb.DynamoDbClient
 import aws.sdk.kotlin.services.dynamodb.model.AttributeValue

@@ -1,6 +1,7 @@
 package com.example.plugins
 
 import com.example.*
+import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
 import com.example.Data.models.ProfileDataSourceInterface
 import com.example.awsServices.dynamoDb.*
 import com.example.awsServices.ses.testSendEmail
@@ -11,6 +12,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.application.*
 
 fun Application.configureRouting(
+    WorkerProfileDataSource: WorkerProfileDynamoDBInterface,
     ProfileDataSource: ProfileDataSourceInterface,
     hashingService: HashingService,
     tokenService: TokenService,
@@ -41,5 +43,8 @@ fun Application.configureRouting(
 
         //test send emil
         testSendEmail()
+
+        //puts 100 worker profiles into the WorkerProfileDynamodb
+        PopulateWorkerDBWithProfiles(WorkerProfileDataSource)
     }
 }
