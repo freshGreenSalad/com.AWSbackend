@@ -31,7 +31,7 @@ fun Application.configureRouting(
         putWorkerImage()
 
         //puts a Profile into the dynamodb database
-        PutProflieInDynamoDB(ProfileDataSource,hashingService)
+        PutProflieInDynamoDB(ProfileDataSource,hashingService,tokenService,tokenConfig)
 
         //checks a password email combination and returns a JWT
         authoriseUser(ProfileDataSource,hashingService,tokenService,tokenConfig)
@@ -46,5 +46,8 @@ fun Application.configureRouting(
 
         //puts 100 worker profiles into the WorkerProfileDynamodb
         PopulateWorkerDBWithProfiles(WorkerProfileDataSource)
+
+        //updates a new profile with all the workers data
+        UpdateWorkerProflie(WorkerProfileDataSource)
     }
 }

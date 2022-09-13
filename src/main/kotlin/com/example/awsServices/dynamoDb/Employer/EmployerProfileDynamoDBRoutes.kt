@@ -12,6 +12,7 @@ import com.plcoding.security.token.TokenService
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -19,7 +20,9 @@ import org.apache.commons.codec.digest.DigestUtils
 
 fun Route.PutProflieInDynamoDB(
     profileDataSource: ProfileDataSourceInterface,
-    hashingService : HashingService
+    hashingService : HashingService,
+    tokenService: TokenService,
+    tokenConfig: TokenConfig
 ){
     post("UserAuthSignUp") {
 
@@ -51,8 +54,20 @@ fun Route.PutProflieInDynamoDB(
             call.respond(HttpStatusCode.Conflict)
             return@post
         }
+        val token = tokenService.generate(
+            config = tokenConfig,
+            TokenClaim(
+                name = "userId",
+                value = request.email
+            )
+        )
 
-        call.respond(HttpStatusCode.OK)
+        call.respond(
+            status = HttpStatusCode.OK,
+            message = AuthResponse(
+                token = token
+            )
+        )
     }
 }
 
@@ -118,8 +133,12 @@ fun Route.testGetProfileFromDynamodb(
 
 fun Route.authenticate() {
     authenticate {
-        get("authenticate") {
-            call.respond(HttpStatusCode.OK)
+        post("authenticate") {
+            val principal = call.principal<JWTPrincipal>()
+            val username = principal!!.payload.getClaim("userId").asString()
+            val expiresAt = principal.expiresAt?.time?.minus(System.currentTimeMillis())
+            call.respondText("Hello, $username! Token is expired at $expiresAt ms.")
+            call.respond(HttpStatusCode.OK, username)
         }
     }
 }

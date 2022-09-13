@@ -7,7 +7,7 @@ import aws.sdk.kotlin.services.dynamodb.model.PutItemRequest
 import com.example.Data.models.Profile
 import com.example.Data.models.ProfileDataSourceInterface
 
-class dynamoDbProfileDataSource(
+class EmployerProfileDynamoDBDataSource(
 ) : ProfileDataSourceInterface {
     override suspend fun getProfileByEmail(email: String):Profile {
         val keyToGet = mutableMapOf<String, AttributeValue>()
@@ -15,7 +15,7 @@ class dynamoDbProfileDataSource(
 
         val request = GetItemRequest {
             key = keyToGet
-            tableName = "UserProfileTable"
+            tableName = "WorkerProfileTable"
         }
 
         val profile = DynamoDbClient { region = "ap-southeast-2" }.use { db ->
@@ -34,9 +34,7 @@ class dynamoDbProfileDataSource(
 
     override suspend fun insertUser(user: Profile):Boolean {
 
-        val tableNameVal = "UserProfileTable"
         val itemValues = mutableMapOf<String, AttributeValue>()
-
 
         itemValues["Email"] = AttributeValue.S(user.email)
         itemValues["Password"] = AttributeValue.S(user.password)
@@ -46,13 +44,13 @@ class dynamoDbProfileDataSource(
         itemValues["Company"] = AttributeValue.S(user.company)
 
         val request = PutItemRequest {
-            tableName = "UserProfileTable"
+            tableName = "WorkerProfileTable"
             item = itemValues
         }
         var successfulInsert: Boolean
         DynamoDbClient { region = "ap-southeast-2" }.use { ddb ->
             ddb.putItem(request)
-            println(" A new item was placed into $tableNameVal.")
+            println(" A new item was placed into WorkerProfileTable.")
             successfulInsert = true
         }
         return successfulInsert

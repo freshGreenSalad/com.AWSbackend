@@ -2,7 +2,7 @@ package com.example
 
 
 import com.example.awsServices.dynamoDb.Employee.WorkerProfileDynamoDBDataSource
-import com.example.awsServices.dynamoDb.Employer.dynamoDbProfileDataSource
+import com.example.awsServices.dynamoDb.Employer.EmployerProfileDynamoDBDataSource
 import io.ktor.server.application.*
 import com.example.plugins.*
 import com.plcoding.security.hashing.SHA256HashingService
@@ -14,7 +14,7 @@ fun main(args: Array<String>): Unit =
 
 @Suppress("unused") // application.conf references the main function. This annotation prevents the IDE from marking it as unused.
 fun Application.module() {
-    val profileDataSource = dynamoDbProfileDataSource()
+    val profileDataSource = EmployerProfileDynamoDBDataSource()
     val WorkerProfileDynamoDBData = WorkerProfileDynamoDBDataSource()
     val tokenService = JwtTokenService()
     val tokenConfig = TokenConfig(
