@@ -1,11 +1,13 @@
 package com.example.awsServices.dynamoDb
 
 import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
-import com.example.Data.models.AuthRequest
-import com.example.Data.models.ProfileInformation
-import com.example.Data.models.WorkerProfileDataClass
+import com.example.Data.models.*
+import com.example.Data.models.workerVisualiser.*
+import com.plcoding.security.hashing.HashingService
+import com.plcoding.security.token.TokenClaim
+import com.plcoding.security.token.TokenConfig
+import com.plcoding.security.token.TokenService
 import io.ktor.http.*
-import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -13,44 +15,160 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.PopulateWorkerDBWithProfiles(
-    WorkerdataSource: WorkerProfileDynamoDBInterface
+
+//new validated aws routes
+fun Route.putWorkerEmailPassword(
+    WorkerDataSource: WorkerProfileDynamoDBInterface,
+    tokenService: TokenService,
+    hashingService: HashingService,
+    tokenConfig: TokenConfig
 ) {
-    val listOfFirstNames =
-        listOf("Liam", "David", "Lachlan", "Brodie", "Sarah", "Ricky", "Bobby", "Geoff", "Amy", "Conor")
-    val listOfLastNames =
-        listOf("Daniels", "Jacobs", "Small", "Taylor", "Smith", "Everlans", "Ryan", "Mufasa", "Fox", "Cooper")
-    val emailString = "email@email.com"
-    post("PopulateWorkerDBwithProfile") {
-        for (profile in 1..100) {
-            val email = profile.toString() + emailString
-            val firstname = listOfFirstNames[kotlin.random.Random.nextInt(0, 10)]
-            val lastName = listOfLastNames[kotlin.random.Random.nextInt(0, 10)]
-            val workerProfile = WorkerProfileDataClass(
-                email = email,
-                firstName = firstname,
-                lastName = lastName
-            )
-            WorkerdataSource.putWorkerProfileInDB(workerProfile)
+    post("WorkerPostEmailPassword") {
+        val request = call.receiveOrNull<AuthRequest>() ?: kotlin.run {
+            call.respond(HttpStatusCode.BadRequest)
+            return@post
         }
+
+        val areFieldsBlank = request.email.isBlank() || request.password.isBlank()
+        val isPwTooShort = request.password.length < 8
+        if(areFieldsBlank || isPwTooShort) {
+            call.respond(HttpStatusCode.Conflict)
+            return@post
+        }
+
+        val saltedHash = hashingService.generateSaltedHash(request.password)
+
+        val wasAcknowledged = WorkerDataSource.putWorkerSignupInfo(
+            email = request.email,
+            password = saltedHash.hash,
+            salt = saltedHash.salt
+        )
+
+        if(!wasAcknowledged)  {
+            call.respond(HttpStatusCode.Conflict)
+            return@post
+        }
+        val token = tokenService.generate(
+            config = tokenConfig,
+            TokenClaim(
+                name = "userId",
+                value = request.email
+            )
+        )
+
+        call.respond(
+            status = HttpStatusCode.OK,
+            message = AuthResponse(
+                token = token
+            )
+        )
+    }
+}
+
+fun Route.putWorkerSiteInfo(
+    WorkerDataSource: WorkerProfileDynamoDBInterface
+) {
+    post("postEmailPassword") {
+        val request = call.receiveOrNull<WorkerSite>() ?: kotlin.run {
+            call.respond(HttpStatusCode.BadRequest)
+            return@post
+        }
+        WorkerDataSource.putWorkerSiteInfo(
+            email = request.email,
+            address = request.address,
+            siteExpliation = request.siteExplanation,
+            siteAddressExplination = request.siteAddressExplanation,
+            googleMapsLocation = request.googleMapsLocation,
+            siteDaysWorkedAndThereUsualStartAndEndTime = request.siteDaysWorkedAndThereUsualStartAndEndTime,
+            terrain = request.terrain,
+            sitePhoto = request.sitePhoto
+        )
         call.respond(HttpStatusCode.OK)
     }
 }
 
-fun Route.UpdateWorkerProflie(
-    WorkerdataSource: WorkerProfileDynamoDBInterface
+fun Route.putWorkerSpecialLicence(
+    WorkerDataSource: WorkerProfileDynamoDBInterface
 ) {
-    authenticate {
-        post("postProfileInformation") {
-            val email = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asString()
-            val request = call.receiveOrNull<ProfileInformation>() ?: kotlin.run {
-                call.respond(HttpStatusCode.BadRequest)
-                return@post
-            }
-            WorkerdataSource.updateTableItem(email, request)
-            call.respond(HttpStatusCode.OK)
-
+    post("postEmailPassword") {
+        val request = call.receiveOrNull<SpecialLicence>() ?: kotlin.run {
+            call.respond(HttpStatusCode.BadRequest)
+            return@post
         }
+           WorkerDataSource.putWorkerSpecialLicence(
+               email = request.email,
+               licenceType = request.licenceType,
+               issueDate = request.issueDate,
+               expireyDate = request.expiryDate,
+               licencePhoto = request.licencePhoto
+           )
+        call.respond(HttpStatusCode.OK)
+    }
+}
+
+
+fun Route.putDatesWorked(
+    WorkerDataSource: WorkerProfileDynamoDBInterface
+) {
+    post("postEmailPassword") {
+        val request = call.receiveOrNull<DatesWorked>() ?: kotlin.run {
+            call.respond(HttpStatusCode.BadRequest)
+            return@post
+        }
+           WorkerDataSource.putDatesWorked(
+               email = request.email,
+               aggregate = request.aggregate,
+               jan = request.jan,
+               feb = request.feb,
+               march = request.march,
+               april = request.april,
+               may = request.may,
+               june = request.june,
+               july = request.july,
+               august = request.august,
+               september = request.september,
+               october = request.october,
+               november = request.november,
+               december = request.december
+           )
+        call.respond(HttpStatusCode.OK)
+    }
+}
+fun Route.putWorkerPersonalData(
+    WorkerDataSource: WorkerProfileDynamoDBInterface
+) {
+    post("postEmailPassword") {
+        val request = call.receiveOrNull<Personal>() ?: kotlin.run {
+            call.respond(HttpStatusCode.BadRequest)
+            return@post
+        }
+           WorkerDataSource.putWorkerPersonalData(
+               email = request.email,
+               supervisor = request.supervisor,
+               firstname = request.firstname,
+               lastname = request.lastname,
+               recordOfAttendance = request.recordOfAttendance,
+               rate = request.rate,
+               personalPhoto = request.personalPhoto
+           )
+        call.respond(HttpStatusCode.OK)
+    }
+}
+fun Route.putWorkerExperience(
+    WorkerDataSource: WorkerProfileDynamoDBInterface
+) {
+    post("postEmailPassword") {
+        val request = call.receiveOrNull<Experience>() ?: kotlin.run {
+            call.respond(HttpStatusCode.BadRequest)
+            return@post
+        }
+           WorkerDataSource.putWorkerExperience(
+               email = request.email,
+               typeofExperience = request.typeofExperience,
+               ratingAggregate = request.ratingAggregate,
+               previousratingsfromSupervisors = request.previousratingsfromSupervisors
+           )
+        call.respond(HttpStatusCode.OK)
     }
 }
 

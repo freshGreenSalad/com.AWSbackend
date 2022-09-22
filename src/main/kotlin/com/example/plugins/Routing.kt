@@ -2,7 +2,7 @@ package com.example.plugins
 
 import com.example.*
 import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
-import com.example.Data.models.ProfileDataSourceInterface
+import com.example.Data.models.SupervisorProfileDynamoDBInterface
 import com.example.awsServices.dynamoDb.*
 import com.example.awsServices.ses.testSendEmail
 import com.plcoding.security.hashing.HashingService
@@ -13,7 +13,7 @@ import io.ktor.server.application.*
 
 fun Application.configureRouting(
     WorkerProfileDataSource: WorkerProfileDynamoDBInterface,
-    ProfileDataSource: ProfileDataSourceInterface,
+    ProfileDataSource: SupervisorProfileDynamoDBInterface,
     hashingService: HashingService,
     tokenService: TokenService,
     tokenConfig: TokenConfig
@@ -38,16 +38,26 @@ fun Application.configureRouting(
 
         testGetProfileFromDynamodb(ProfileDataSource)
 
-        //tests the authentication of the JWT
-        authenticate()
-
         //test send emil
         testSendEmail()
 
-        //puts 100 worker profiles into the WorkerProfileDynamodb
-        PopulateWorkerDBWithProfiles(WorkerProfileDataSource)
+        //aws visualiser route functions for workers
+        // putWorkerSignupInfo
+        // putWorkerSiteInfo
+        // putWorkerSpecialLicence
+        // putDatesWorked
+        // putWorkerPersonalData
+        // putWorkerExperience
+        putWorkerEmailPassword(WorkerProfileDataSource, tokenService,  hashingService, tokenConfig)
+        putWorkerSiteInfo(WorkerProfileDataSource)
+        putWorkerSpecialLicence(WorkerProfileDataSource)
+        putDatesWorked(WorkerProfileDataSource)
+        putWorkerPersonalData(WorkerProfileDataSource)
+        putWorkerExperience(WorkerProfileDataSource)
 
-        //updates a new profile with all the workers data
-        UpdateWorkerProflie(WorkerProfileDataSource)
+        //aws visualiser route functions for Supervisors
+        // putSupervisorSignupInfo
+        // putSupervisorSiteInfo
+        // putSupervisorPersonalData
     }
 }

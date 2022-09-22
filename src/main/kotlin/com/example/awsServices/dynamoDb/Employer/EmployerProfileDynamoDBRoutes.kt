@@ -1,9 +1,10 @@
 package com.example.awsServices.dynamoDb
 
+import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
 import com.example.Data.models.AuthRequest
 import com.example.Data.models.AuthResponse
-import com.example.Data.models.Profile
-import com.example.Data.models.ProfileDataSourceInterface
+import com.example.Data.models.SupervisorProfileDynamoDBInterface
+import com.example.Data.models.workerVisualiser.SpecialLicence
 import com.plcoding.security.hashing.HashingService
 import com.plcoding.security.hashing.SaltedHash
 import com.plcoding.security.token.TokenClaim
@@ -19,7 +20,7 @@ import io.ktor.server.routing.*
 import org.apache.commons.codec.digest.DigestUtils
 
 fun Route.PutProflieInDynamoDB(
-    profileDataSource: ProfileDataSourceInterface,
+    profileDataSource: SupervisorProfileDynamoDBInterface,
     hashingService : HashingService,
     tokenService: TokenService,
     tokenConfig: TokenConfig
@@ -72,7 +73,7 @@ fun Route.PutProflieInDynamoDB(
 }
 
 fun Route.authoriseUser(
-    profileDataSource: ProfileDataSourceInterface,
+    profileDataSource: SupervisorProfileDynamoDBInterface,
     hashingService : HashingService,
     tokenService: TokenService,
     tokenConfig: TokenConfig
@@ -119,7 +120,7 @@ fun Route.authoriseUser(
     }
 }
 fun Route.testGetProfileFromDynamodb(
-    profileDataSource: ProfileDataSourceInterface,
+    profileDataSource: SupervisorProfileDynamoDBInterface,
 ){
     post("signinTest") {
         val request = call.receiveOrNull<AuthRequest>() ?: kotlin.run {
@@ -131,15 +132,27 @@ fun Route.testGetProfileFromDynamodb(
     }
 }
 
-fun Route.authenticate() {
-    authenticate {
-        post("authenticate") {
-            val principal = call.principal<JWTPrincipal>()
-            val username = principal!!.payload.getClaim("userId").asString()
-            val expiresAt = principal.expiresAt?.time?.minus(System.currentTimeMillis())
-            call.respondText("Hello, $username! Token is expired at $expiresAt ms.")
-            call.respond(HttpStatusCode.OK, username)
+//aws visualiser route functions for Supervisors
+// putSupervisorSignupInfo
+// putSupervisorSiteInfo
+// putSupervisorPersonalData
+
+fun Route.putWorkerSpecialLicence(
+    SupervisorDataSource: SupervisorProfileDynamoDBInterface
+) {
+    post("postEmailPassword") {
+        val request = call.receiveOrNull<SpecialLicence>() ?: kotlin.run {
+            call.respond(HttpStatusCode.BadRequest)
+            return@post
         }
+        SupervisorDataSource.putSupervisorSignupInfo(
+            email = request.email,
+            licenceType = request.licenceType,
+            issueDate = request.issueDate,
+            expireyDate = request.expiryDate,
+            licencePhoto = request.licencePhoto
+        )
+        call.respond(HttpStatusCode.OK)
     }
 }
 
