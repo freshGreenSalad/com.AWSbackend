@@ -5,7 +5,7 @@ import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
 import aws.sdk.kotlin.services.dynamodb.model.PutItemRequest
 import com.example.Data.models.SupervisorProfileDynamoDBInterface
 
-class EmployerProfileDynamoDBDataSource(
+class SupervisorProfileDynamoDBDataSource(
 ) : SupervisorProfileDynamoDBInterface {
 
     //aws visualiser route functions for Supervisors

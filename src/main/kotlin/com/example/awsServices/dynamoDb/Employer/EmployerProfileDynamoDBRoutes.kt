@@ -1,10 +1,10 @@
 package com.example.awsServices.dynamoDb
 
-import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
-import com.example.Data.models.AuthRequest
-import com.example.Data.models.AuthResponse
+import com.example.Data.models.Auth.AuthRequest
+import com.example.Data.models.Auth.AuthResponse
 import com.example.Data.models.SupervisorProfileDynamoDBInterface
-import com.example.Data.models.workerVisualiser.SpecialLicence
+import com.example.Data.models.workerVisualiser.Personal
+import com.example.Data.models.workerVisualiser.WorkerSite
 import com.plcoding.security.hashing.HashingService
 import com.plcoding.security.hashing.SaltedHash
 import com.plcoding.security.token.TokenClaim
@@ -19,60 +19,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.apache.commons.codec.digest.DigestUtils
 
-fun Route.PutProflieInDynamoDB(
-    profileDataSource: SupervisorProfileDynamoDBInterface,
-    hashingService : HashingService,
-    tokenService: TokenService,
-    tokenConfig: TokenConfig
-){
-    post("UserAuthSignUp") {
-
-        val request = call.receiveOrNull<AuthRequest>() ?: kotlin.run {
-            call.respond(HttpStatusCode.BadRequest)
-            return@post
-        }
-
-        val areFieldsBlank = request.email.isBlank() || request.password.isBlank()
-        val isPwTooShort = request.password.length < 8
-        if(areFieldsBlank || isPwTooShort) {
-            call.respond(HttpStatusCode.Conflict)
-            return@post
-        }
-
-        val saltedHash = hashingService.generateSaltedHash(request.password)
-
-        val user = Profile(
-            email = request.email,
-            password = saltedHash.hash,
-            salt = saltedHash.salt,
-            firstName = "",
-            lastName = "",
-            company = "",
-        )
-        val wasAcknowledged = profileDataSource.insertUser(user)
-
-        if(!wasAcknowledged)  {
-            call.respond(HttpStatusCode.Conflict)
-            return@post
-        }
-        val token = tokenService.generate(
-            config = tokenConfig,
-            TokenClaim(
-                name = "userId",
-                value = request.email
-            )
-        )
-
-        call.respond(
-            status = HttpStatusCode.OK,
-            message = AuthResponse(
-                token = token
-            )
-        )
-    }
-}
-
-fun Route.authoriseUser(
+/*fun Route.authoriseUser(
     profileDataSource: SupervisorProfileDynamoDBInterface,
     hashingService : HashingService,
     tokenService: TokenService,
@@ -118,44 +65,103 @@ fun Route.authoriseUser(
             )
         )
     }
-}
-fun Route.testGetProfileFromDynamodb(
-    profileDataSource: SupervisorProfileDynamoDBInterface,
-){
-    post("signinTest") {
-        val request = call.receiveOrNull<AuthRequest>() ?: kotlin.run {
-            call.respond(HttpStatusCode.BadRequest)
-            return@post
-        }
-        val profile = profileDataSource.getProfileByEmail(request.email)
-        call.respond(HttpStatusCode.OK)
-    }
-}
+}*/
 
 //aws visualiser route functions for Supervisors
 // putSupervisorSignupInfo
 // putSupervisorSiteInfo
 // putSupervisorPersonalData
 
-fun Route.putWorkerSpecialLicence(
-    SupervisorDataSource: SupervisorProfileDynamoDBInterface
+fun Route.putSupervisorSignupInfo(
+    SupervisorDataSource: SupervisorProfileDynamoDBInterface,
+    hashingService : HashingService,
+    tokenService: TokenService,
+    tokenConfig: TokenConfig
 ) {
-    post("postEmailPassword") {
-        val request = call.receiveOrNull<SpecialLicence>() ?: kotlin.run {
+    post("putSupervisorSignupInfo") {
+        val request = call.receiveOrNull<AuthRequest>() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
-        SupervisorDataSource.putSupervisorSignupInfo(
+
+        val areFieldsBlank = request.email.isBlank() || request.password.isBlank()
+        val isPwTooShort = request.password.length < 8
+        if(areFieldsBlank || isPwTooShort) {
+            call.respond(HttpStatusCode.Conflict)
+            return@post
+        }
+
+        val saltedHash = hashingService.generateSaltedHash(request.password)
+
+        val wasAcknowledged = SupervisorDataSource.putSupervisorSignupInfo(
             email = request.email,
-            licenceType = request.licenceType,
-            issueDate = request.issueDate,
-            expireyDate = request.expiryDate,
-            licencePhoto = request.licencePhoto
+            password = saltedHash.hash,
+            salt = saltedHash.salt
+        )
+
+        if(!wasAcknowledged)  {
+            call.respond(HttpStatusCode.Conflict)
+            return@post
+        }
+        val token = tokenService.generate(
+            config = tokenConfig,
+            TokenClaim(
+                name = "userId",
+                value = request.email
+            )
+        )
+
+        call.respond(
+            status = HttpStatusCode.OK,
+            message = AuthResponse(
+                token = token
+            )
+        )
+    }
+}
+
+fun Route.putSupervisorSiteInfo(
+    SupervisorDataSource: SupervisorProfileDynamoDBInterface,
+) {
+    post("putSupervisorSiteInfo") {
+        val request = call.receiveOrNull<WorkerSite>() ?: kotlin.run {
+            call.respond(HttpStatusCode.BadRequest)
+            return@post
+        }
+        SupervisorDataSource.putSupervisorSiteInfo(
+            email = request.email,
+            address = request.address,
+            siteExpliation = request.siteExplanation,
+            siteAddressExplination = request.siteAddressExplanation,
+            googleMapsLocation = request.googleMapsLocation,
+            siteDaysWorkedAndThereUsualStartAndEndTime = request.siteDaysWorkedAndThereUsualStartAndEndTime,
+            terrain = request.terrain,
+            sitePhoto = request.sitePhoto
         )
         call.respond(HttpStatusCode.OK)
     }
 }
 
+fun Route.putSupervisorPersonalData(
+    SupervisorDataSource: SupervisorProfileDynamoDBInterface,
+) {
+    post("putSupervisorPersonalData") {
+        val request = call.receiveOrNull<Personal>() ?: kotlin.run {
+            call.respond(HttpStatusCode.BadRequest)
+            return@post
+        }
+        SupervisorDataSource.putSupervisorPersonalData(
+            email = request.email,
+            supervisor = request.supervisor,
+            firstname = request.firstname,
+            lastname = request.lastname,
+            recordOfAttendance = request.recordOfAttendance,
+            rate = request.rate,
+            personalPhoto = request.personalPhoto
+        )
+        call.respond(HttpStatusCode.OK)
+    }
+}
 
 
 

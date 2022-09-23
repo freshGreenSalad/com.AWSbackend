@@ -4,6 +4,9 @@ import aws.sdk.kotlin.services.dynamodb.DynamoDbClient
 import aws.sdk.kotlin.services.dynamodb.model.*
 import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
 import com.example.Data.models.*
+import com.example.Data.models.Auth.AuthSaltPassword
+import com.example.Data.models.workerVisualiser.*
+import com.example.Data.wrapperClasses.AwsResultWrapper
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -17,7 +20,7 @@ class WorkerProfileDynamoDBDataSource(
     // putDatesWorked
     // putWorkerPersonalData
     // putWorkerExperience
-    override suspend fun putWorkerSignupInfo(email: String, password: String, salt: String):Boolean  {
+    override suspend fun putWorkerSignupInfo(email: String, password: String, salt: String): Boolean {
         val itemValues = mutableMapOf<String, AttributeValue>()
 
         itemValues["partitionKey"] = AttributeValue.S(email)
@@ -52,7 +55,7 @@ class WorkerProfileDynamoDBDataSource(
         siteDaysWorkedAndThereUsualStartAndEndTime: String,
         terrain: String,
         sitePhoto: String
-    ){
+    ) {
 
         val itemValues = mutableMapOf<String, AttributeValue>()
         itemValues["partitionKey"] = AttributeValue.S(email)
@@ -61,7 +64,8 @@ class WorkerProfileDynamoDBDataSource(
         itemValues["siteExplination"] = AttributeValue.S(siteExpliation)
         itemValues["siteAddressExplination"] = AttributeValue.S(siteAddressExplination)
         itemValues["googleMapsLocation"] = AttributeValue.S(googleMapsLocation)
-        itemValues["siteDaysWorkedAndThereUsualStartAndEndTime"] = AttributeValue.S(siteDaysWorkedAndThereUsualStartAndEndTime)
+        itemValues["siteDaysWorkedAndThereUsualStartAndEndTime"] =
+            AttributeValue.S(siteDaysWorkedAndThereUsualStartAndEndTime)
         itemValues["terrain"] = AttributeValue.S(terrain)
         itemValues["sitePhoto"] = AttributeValue.S(sitePhoto)
 
@@ -70,7 +74,7 @@ class WorkerProfileDynamoDBDataSource(
             item = itemValues
         }
 
-       try {
+        try {
             DynamoDbClient { region = "ap-southeast-2" }.use { db ->
                 db.putItem(request)
             }
@@ -218,4 +222,193 @@ class WorkerProfileDynamoDBDataSource(
         }
     }
 
+    override suspend fun getWorkerSignupAuth(email: String): AwsResultWrapper<AuthSaltPassword> {
+        val keyToGet = mutableMapOf<String, AttributeValue>()
+        keyToGet["partitionKey"] = AttributeValue.S(email)
+        keyToGet["sortKey"] = AttributeValue.S("signIn")
+
+
+        val request = GetItemRequest {
+            key = keyToGet
+            tableName = "workerAppTable"
+        }
+        return try {
+            val result = DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+                db.getItem(request)
+            }
+            val item = result.item
+            val salt = item?.get("salt").toString()
+            val password = item?.get("password").toString()
+            val authSaltPassword = AuthSaltPassword(salt, password)
+
+            return AwsResultWrapper.Success(data = authSaltPassword)
+        } catch (e: Exception) {
+            AwsResultWrapper.Fail()
+        }
+    }
+
+    override suspend fun getWorkerSiteInfo(email: String): AwsResultWrapper<WorkerSite> {
+        val keyToGet = mutableMapOf<String, AttributeValue>()
+        keyToGet["partitionKey"] = AttributeValue.S(email)
+        keyToGet["sortKey"] = AttributeValue.S("signIn")
+
+
+        val request = GetItemRequest {
+            key = keyToGet
+            tableName = "workerAppTable"
+        }
+        return try {
+            val result = DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+                db.getItem(request)
+            }
+            val item = result.item
+            val email = item?.get("salt").toString()
+            val address = item?.get("address").toString()
+            val siteExplanation = item?.get("siteExplanation").toString()
+            val siteAddressExplanation = item?.get("siteAddressExplanation").toString()
+            val googleMapsLocation = item?.get("googleMapsLocation").toString()
+            val siteDaysWorkedAndThereUsualStartAndEndTime =
+                item?.get("siteDaysWorkedAndThereUsualStartAndEndTime").toString()
+            val terrain = item?.get("terrain").toString()
+            val sitePhoto = item?.get("sitePhoto").toString()
+            val workerSite = WorkerSite(
+                email = email,
+                address = address,
+                siteExplanation = siteExplanation,
+                siteAddressExplanation = siteAddressExplanation,
+                googleMapsLocation = googleMapsLocation,
+                siteDaysWorkedAndThereUsualStartAndEndTime = siteDaysWorkedAndThereUsualStartAndEndTime,
+                terrain = terrain,
+                sitePhoto = sitePhoto
+            )
+
+            return AwsResultWrapper.Success(data = workerSite)
+        } catch (e: Exception) {
+            AwsResultWrapper.Fail()
+        }
+    }
+
+    override suspend fun getWorkerSpecialLicence(email: String): AwsResultWrapper<SpecialLicence> {
+        val keyToGet = mutableMapOf<String, AttributeValue>()
+        keyToGet["partitionKey"] = AttributeValue.S(email)
+        keyToGet["sortKey"] = AttributeValue.S("signIn")
+
+
+        val request = GetItemRequest {
+            key = keyToGet
+            tableName = "workerAppTable"
+        }
+        return try {
+            val result = DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+                db.getItem(request)
+            }
+            val item = result.item
+            val email = item?.get("email").toString()
+            val licenceType = item?.get("licenceType").toString()
+            val issueDate = item?.get("issueDate").toString()
+            val expiryDate = item?.get("expiryDate").toString()
+            val licencePhoto = item?.get("licencePhoto").toString()
+            val specialLicence = SpecialLicence(
+                email = email,
+                licenceType = licenceType,
+                issueDate = issueDate,
+                expiryDate = expiryDate,
+                licencePhoto = licencePhoto
+            )
+
+            return AwsResultWrapper.Success(data = specialLicence)
+        } catch (e: Exception) {
+            AwsResultWrapper.Fail()
+        }
+    }
+
+    override suspend fun getDatesWorked(email: String): AwsResultWrapper<DatesWorked> {
+        val keyToGet = mutableMapOf<String, AttributeValue>()
+        keyToGet["partitionKey"] = AttributeValue.S(email)
+        keyToGet["sortKey"] = AttributeValue.S("signIn")
+
+
+        val request = GetItemRequest {
+            key = keyToGet
+            tableName = "workerAppTable"
+        }
+        return try {
+            val result = DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+                db.getItem(request)
+            }
+            val item = result.item
+            val email = item?.get("email").toString()
+            val aggregate = item?.get("aggregate").toString()
+            val jan = item?.get("jan").toString()
+            val feb = item?.get("feb").toString()
+            val march = item?.get("march").toString()
+            val april = item?.get("april").toString()
+            val may = item?.get("may").toString()
+            val june = item?.get("june").toString()
+            val july = item?.get("july").toString()
+            val august = item?.get("august").toString()
+            val september = item?.get("september").toString()
+            val october = item?.get("october").toString()
+            val november = item?.get("november").toString()
+            val december = item?.get("december").toString()
+            val datesWorked = DatesWorked(
+                email = email,
+                aggregate = aggregate,
+                jan = jan,
+                feb = feb,
+                march = march,
+                april = april,
+                may = may,
+                june = june,
+                july = july,
+                august = august,
+                september = september,
+                october = october,
+                november = november,
+                december = december
+            )
+
+            return AwsResultWrapper.Success(data = datesWorked)
+        } catch (e: Exception) {
+            AwsResultWrapper.Fail()
+        }
+    }
+
+    override suspend fun getWorkerPersonalData(email: String): AwsResultWrapper<Personal> {
+        val keyToGet = mutableMapOf<String, AttributeValue>()
+        keyToGet["partitionKey"] = AttributeValue.S(email)
+        keyToGet["sortKey"] = AttributeValue.S("signIn")
+
+
+        val request = GetItemRequest {
+            key = keyToGet
+            tableName = "workerAppTable"
+        }
+        return try {
+            val result = DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+                db.getItem(request)
+            }
+            val item = result.item
+            val email = item?.get("email").toString()
+            val licenceType = item?.get("licenceType").toString()
+            val issueDate = item?.get("issueDate").toString()
+            val expiryDate = item?.get("expiryDate").toString()
+            val licencePhoto = item?.get("licencePhoto").toString()
+            val specialLicence = SpecialLicence(
+                email = email,
+                licenceType = licenceType,
+                issueDate = issueDate,
+                expiryDate = expiryDate,
+                licencePhoto = licencePhoto
+            )
+
+            return AwsResultWrapper.Success(data = specialLicence)
+        } catch (e: Exception) {
+            AwsResultWrapper.Fail()
+        }
+    }
+
+    override suspend fun getWorkerExperience(email: String): AwsResultWrapper<Experience> {
+        TODO("Not yet implemented")
+    }
 }

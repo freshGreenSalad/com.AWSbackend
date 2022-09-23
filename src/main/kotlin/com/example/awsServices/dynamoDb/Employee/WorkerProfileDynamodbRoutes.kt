@@ -1,7 +1,8 @@
 package com.example.awsServices.dynamoDb
 
 import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
-import com.example.Data.models.*
+import com.example.Data.models.Auth.AuthRequest
+import com.example.Data.models.Auth.AuthResponse
 import com.example.Data.models.workerVisualiser.*
 import com.plcoding.security.hashing.HashingService
 import com.plcoding.security.token.TokenClaim
@@ -9,21 +10,24 @@ import com.plcoding.security.token.TokenConfig
 import com.plcoding.security.token.TokenService
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-
-//new validated aws routes
+    //aws visualiser route functions for workers
+    // putWorkerSignupInfo
+    // putWorkerSiteInfo
+    // putWorkerSpecialLicence
+    // putDatesWorked
+    // putWorkerPersonalData
+    // putWorkerExperience
 fun Route.putWorkerEmailPassword(
     WorkerDataSource: WorkerProfileDynamoDBInterface,
     tokenService: TokenService,
     hashingService: HashingService,
     tokenConfig: TokenConfig
 ) {
-    post("WorkerPostEmailPassword") {
+    post("putWorkerEmailPassword") {
         val request = call.receiveOrNull<AuthRequest>() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post
@@ -68,7 +72,7 @@ fun Route.putWorkerEmailPassword(
 fun Route.putWorkerSiteInfo(
     WorkerDataSource: WorkerProfileDynamoDBInterface
 ) {
-    post("postEmailPassword") {
+    post("putWorkerSiteInfo") {
         val request = call.receiveOrNull<WorkerSite>() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post
@@ -90,7 +94,7 @@ fun Route.putWorkerSiteInfo(
 fun Route.putWorkerSpecialLicence(
     WorkerDataSource: WorkerProfileDynamoDBInterface
 ) {
-    post("postEmailPassword") {
+    post("putWorkerSpecialLicence") {
         val request = call.receiveOrNull<SpecialLicence>() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post
@@ -110,7 +114,7 @@ fun Route.putWorkerSpecialLicence(
 fun Route.putDatesWorked(
     WorkerDataSource: WorkerProfileDynamoDBInterface
 ) {
-    post("postEmailPassword") {
+    post("putDatesWorked") {
         val request = call.receiveOrNull<DatesWorked>() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post
@@ -137,7 +141,7 @@ fun Route.putDatesWorked(
 fun Route.putWorkerPersonalData(
     WorkerDataSource: WorkerProfileDynamoDBInterface
 ) {
-    post("postEmailPassword") {
+    post("putWorkerPersonalData") {
         val request = call.receiveOrNull<Personal>() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post
@@ -157,7 +161,7 @@ fun Route.putWorkerPersonalData(
 fun Route.putWorkerExperience(
     WorkerDataSource: WorkerProfileDynamoDBInterface
 ) {
-    post("postEmailPassword") {
+    post("putWorkerExperience") {
         val request = call.receiveOrNull<Experience>() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post

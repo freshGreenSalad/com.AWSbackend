@@ -13,6 +13,7 @@ import io.ktor.server.application.*
 
 fun Application.configureRouting(
     WorkerProfileDataSource: WorkerProfileDynamoDBInterface,
+    SupervisorProfileDataSource: SupervisorProfileDynamoDBInterface,
     ProfileDataSource: SupervisorProfileDynamoDBInterface,
     hashingService: HashingService,
     tokenService: TokenService,
@@ -20,7 +21,6 @@ fun Application.configureRouting(
 ) {
 
     routing {
-
         //puts the initial five profiles into the cloud
         puts3()
 
@@ -30,13 +30,8 @@ fun Application.configureRouting(
         //used this to upload the test images to the workerImage folder on s3
         putWorkerImage()
 
-        //puts a Profile into the dynamodb database
-        PutProflieInDynamoDB(ProfileDataSource,hashingService,tokenService,tokenConfig)
-
         //checks a password email combination and returns a JWT
         authoriseUser(ProfileDataSource,hashingService,tokenService,tokenConfig)
-
-        testGetProfileFromDynamodb(ProfileDataSource)
 
         //test send emil
         testSendEmail()
@@ -59,5 +54,8 @@ fun Application.configureRouting(
         // putSupervisorSignupInfo
         // putSupervisorSiteInfo
         // putSupervisorPersonalData
+        putSupervisorSignupInfo(SupervisorProfileDataSource,  hashingService, tokenService,  tokenConfig)
+        putSupervisorSiteInfo(SupervisorProfileDataSource)
+        putSupervisorPersonalData(SupervisorProfileDataSource)
     }
 }

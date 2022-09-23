@@ -1,5 +1,9 @@
 package com.example.Data.RoutingInterfaces
 
+import com.example.Data.models.Auth.AuthSaltPassword
+import com.example.Data.models.workerVisualiser.*
+import com.example.Data.wrapperClasses.AwsResultWrapper
+
 interface WorkerProfileDynamoDBInterface {
 
     //new aws route from visualiser put worker
@@ -14,6 +18,19 @@ interface WorkerProfileDynamoDBInterface {
     suspend fun putWorkerPersonalData(email: String, supervisor:String, firstname:String, lastname:String, recordOfAttendance:String, rate:String, personalPhoto:String)
 
     suspend fun putWorkerExperience(email: String, typeofExperience:String, ratingAggregate:String, previousratingsfromSupervisors:String )
+
+    //new aws route from visualiser get worker
+    suspend fun getWorkerSignupAuth(email:String): AwsResultWrapper<AuthSaltPassword>
+
+    suspend fun getWorkerSiteInfo(email:String): AwsResultWrapper<WorkerSite>
+
+    suspend fun getWorkerSpecialLicence(email: String): AwsResultWrapper<SpecialLicence>
+
+    suspend fun getDatesWorked(email: String): AwsResultWrapper<DatesWorked>
+
+    suspend fun getWorkerPersonalData(email: String): AwsResultWrapper<Personal>
+
+    suspend fun getWorkerExperience(email: String): AwsResultWrapper<Experience>
 
 
 }
