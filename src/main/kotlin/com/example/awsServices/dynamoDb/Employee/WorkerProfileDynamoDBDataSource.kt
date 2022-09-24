@@ -58,8 +58,8 @@ class WorkerProfileDynamoDBDataSource(
         itemValues["partitionKey"] = AttributeValue.S(email)
         itemValues["SortKey"] = AttributeValue.S("Site")
         itemValues["siteAddress"] = AttributeValue.S(address)
-        itemValues["siteExplination"] = AttributeValue.S(siteExpliation)
-        itemValues["siteAddressExplination"] = AttributeValue.S(siteAddressExplination)
+        itemValues["siteExplanation"] = AttributeValue.S(siteExpliation)
+        itemValues["siteAddressExplanation"] = AttributeValue.S(siteAddressExplination)
         itemValues["googleMapsLocation"] = AttributeValue.S(googleMapsLocation)
         itemValues["siteDaysWorkedAndThereUsualStartAndEndTime"] =
             AttributeValue.S(siteDaysWorkedAndThereUsualStartAndEndTime)
@@ -196,13 +196,13 @@ class WorkerProfileDynamoDBDataSource(
         email: String,
         typeofExperience: String,
         ratingAggregate: String,
-        previousratingsfromSupervisors: String
+        previousRatingsFromSupervisors: String
     ) {
         val itemValues = mutableMapOf<String, AttributeValue>()
         itemValues["partitionKey"] = AttributeValue.S(email)
         itemValues["SortKey"] = AttributeValue.S("experience#$typeofExperience")
         itemValues["ratingAggregate"] = AttributeValue.S(typeofExperience)
-        itemValues["previousratingsfromSupervisors"] = AttributeValue.S(previousratingsfromSupervisors)
+        itemValues["previousRatingsFromSupervisors"] = AttributeValue.S(previousRatingsFromSupervisors)
 
         val request = PutItemRequest {
             tableName = "workerAppTable"
@@ -275,8 +275,7 @@ class WorkerProfileDynamoDBDataSource(
             val siteExplanation = item?.get("siteExplanation").toString()
             val siteAddressExplanation = item?.get("siteAddressExplanation").toString()
             val googleMapsLocation = item?.get("googleMapsLocation").toString()
-            val siteDaysWorkedAndThereUsualStartAndEndTime =
-                item?.get("siteDaysWorkedAndThereUsualStartAndEndTime").toString()
+            val siteDaysWorkedAndThereUsualStartAndEndTime = item?.get("siteDaysWorkedAndThereUsualStartAndEndTime").toString()
             val terrain = item?.get("terrain").toString()
             val sitePhoto = item?.get("sitePhoto").toString()
             val workerSite = WorkerSite(
@@ -299,7 +298,7 @@ class WorkerProfileDynamoDBDataSource(
     override suspend fun getWorkerSpecialLicence(email: String): AwsResultWrapper<SpecialLicence> {
         val keyToGet = mutableMapOf<String, AttributeValue>()
         keyToGet["partitionKey"] = AttributeValue.S(email)
-        keyToGet["sortKey"] = AttributeValue.S("licence")
+        keyToGet["SortKey"] = AttributeValue.S("licence")
 
 
         val request = GetItemRequest {
@@ -333,7 +332,7 @@ class WorkerProfileDynamoDBDataSource(
     override suspend fun getDatesWorked(email: String): AwsResultWrapper<DatesWorked> {
         val keyToGet = mutableMapOf<String, AttributeValue>()
         keyToGet["partitionKey"] = AttributeValue.S(email)
-        keyToGet["sortKey"] = AttributeValue.S("datesWorked")
+        keyToGet["SortKey"] = AttributeValue.S("datesWorked")
 
 
         val request = GetItemRequest {
@@ -385,7 +384,7 @@ class WorkerProfileDynamoDBDataSource(
     override suspend fun getWorkerPersonalData(email: String): AwsResultWrapper<Personal> {
         val keyToGet = mutableMapOf<String, AttributeValue>()
         keyToGet["partitionKey"] = AttributeValue.S(email)
-        keyToGet["sortKey"] = AttributeValue.S("personal")
+        keyToGet["SortKey"] = AttributeValue.S("personal")
 
 
         val request = GetItemRequest {
@@ -423,7 +422,7 @@ class WorkerProfileDynamoDBDataSource(
     override suspend fun getWorkerExperience(email: String): AwsResultWrapper<Experience> {
         val keyToGet = mutableMapOf<String, AttributeValue>()
         keyToGet["partitionKey"] = AttributeValue.S(email)
-        keyToGet["sortKey"] = AttributeValue.S("experience")
+        keyToGet["SortKey"] = AttributeValue.S("experience")
 
 
         val request = GetItemRequest {
@@ -438,12 +437,12 @@ class WorkerProfileDynamoDBDataSource(
             val email = item?.get("email").toString()
             val typeofExperience = item?.get("typeofExperience").toString()
             val ratingAggregate = item?.get("ratingAggregate").toString()
-            val previousratingsfromSupervisors = item?.get("previousratingsfromSupervisors").toString()
+            val previousRatingsFromSupervisors = item?.get("previousRatingsFromSupervisors").toString()
             val experience = Experience(
                 email = email,
                 typeofExperience = typeofExperience,
                 ratingAggregate = ratingAggregate,
-                previousratingsfromSupervisors = previousratingsfromSupervisors
+                previousratingsfromSupervisors = previousRatingsFromSupervisors
             )
 
             return AwsResultWrapper.Success(data = experience)

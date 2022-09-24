@@ -4,25 +4,11 @@ import aws.sdk.kotlin.services.dynamodb.DynamoDbClient
 import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
 import aws.sdk.kotlin.services.dynamodb.model.GetItemRequest
 import aws.sdk.kotlin.services.dynamodb.model.PutItemRequest
-import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
-import com.example.Data.models.Auth.AuthRequest
-import com.example.Data.models.Auth.AuthResponse
 import com.example.Data.models.Auth.AuthSaltPasswordEmail
 import com.example.Data.models.SupervisorProfileDynamoDBInterface
 import com.example.Data.models.workerVisualiser.Personal
 import com.example.Data.models.workerVisualiser.WorkerSite
 import com.example.Data.wrapperClasses.AwsResultWrapper
-import com.plcoding.security.hashing.HashingService
-import com.plcoding.security.hashing.SaltedHash
-import com.plcoding.security.token.TokenClaim
-import com.plcoding.security.token.TokenConfig
-import com.plcoding.security.token.TokenService
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import org.apache.commons.codec.digest.DigestUtils
 
 class SupervisorProfileDynamoDBDataSource(
 ) : SupervisorProfileDynamoDBInterface {
@@ -68,8 +54,8 @@ class SupervisorProfileDynamoDBDataSource(
         itemValues["partitionKey"] = AttributeValue.S(email)
         itemValues["SortKey"] = AttributeValue.S("Site")
         itemValues["siteAddress"] = AttributeValue.S(address)
-        itemValues["siteExplination"] = AttributeValue.S(siteExpliation)
-        itemValues["siteAddressExplination"] = AttributeValue.S(siteAddressExplination)
+        itemValues["siteExplanation"] = AttributeValue.S(siteExpliation)
+        itemValues["siteAddressExplanation"] = AttributeValue.S(siteAddressExplination)
         itemValues["googleMapsLocation"] = AttributeValue.S(googleMapsLocation)
         itemValues["siteDaysWorkedAndThereUsualStartAndEndTime"] = AttributeValue.S(siteDaysWorkedAndThereUsualStartAndEndTime)
         itemValues["terrain"] = AttributeValue.S(terrain)
@@ -127,7 +113,7 @@ class SupervisorProfileDynamoDBDataSource(
     override suspend fun getSupervisorSignupAuth(email: String): AwsResultWrapper<AuthSaltPasswordEmail> {
         val keyToGet = mutableMapOf<String, AttributeValue>()
         keyToGet["partitionKey"] = AttributeValue.S(email)
-        keyToGet["sortKey"] = AttributeValue.S("signIn")
+        keyToGet["SortKey"] = AttributeValue.S("signIn")
 
 
         val request = GetItemRequest {
@@ -156,7 +142,7 @@ class SupervisorProfileDynamoDBDataSource(
     override suspend fun getSupervisorSiteInfo(email: String): AwsResultWrapper<WorkerSite> {
         val keyToGet = mutableMapOf<String, AttributeValue>()
         keyToGet["partitionKey"] = AttributeValue.S(email)
-        keyToGet["sortKey"] = AttributeValue.S("site")
+        keyToGet["SortKey"] = AttributeValue.S("site")
 
 
         val request = GetItemRequest {
@@ -197,7 +183,7 @@ class SupervisorProfileDynamoDBDataSource(
     override suspend fun getSupervisorPersonalData(email: String): AwsResultWrapper<Personal> {
         val keyToGet = mutableMapOf<String, AttributeValue>()
         keyToGet["partitionKey"] = AttributeValue.S(email)
-        keyToGet["sortKey"] = AttributeValue.S("personal")
+        keyToGet["SortKey"] = AttributeValue.S("personal")
 
 
         val request = GetItemRequest {
