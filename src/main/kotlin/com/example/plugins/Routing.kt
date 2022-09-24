@@ -14,12 +14,10 @@ import io.ktor.server.application.*
 fun Application.configureRouting(
     WorkerProfileDataSource: WorkerProfileDynamoDBInterface,
     SupervisorProfileDataSource: SupervisorProfileDynamoDBInterface,
-    ProfileDataSource: SupervisorProfileDynamoDBInterface,
     hashingService: HashingService,
     tokenService: TokenService,
     tokenConfig: TokenConfig
 ) {
-
     routing {
         //puts the initial five profiles into the cloud
         puts3()
@@ -29,9 +27,6 @@ fun Application.configureRouting(
 
         //used this to upload the test images to the workerImage folder on s3
         putWorkerImage()
-
-        //checks a password email combination and returns a JWT
-        authoriseUser(ProfileDataSource,hashingService,tokenService,tokenConfig)
 
         //test send emil
         testSendEmail()
@@ -43,12 +38,26 @@ fun Application.configureRouting(
         // putDatesWorked
         // putWorkerPersonalData
         // putWorkerExperience
-        putWorkerEmailPassword(WorkerProfileDataSource, tokenService,  hashingService, tokenConfig)
+        putWorkerSignupInfo(WorkerProfileDataSource, hashingService,  tokenService,  tokenConfig)
         putWorkerSiteInfo(WorkerProfileDataSource)
         putWorkerSpecialLicence(WorkerProfileDataSource)
         putDatesWorked(WorkerProfileDataSource)
         putWorkerPersonalData(WorkerProfileDataSource)
         putWorkerExperience(WorkerProfileDataSource)
+
+        //aws visualiser route functions for workers
+        // getWorkerSignupInfo
+        // getWorkerSiteInfo
+        // getWorkerSpecialLicence
+        // getDatesWorked
+        // getWorkerPersonalData
+        // getWorkerExperience
+        getWorkerSignupAuth(WorkerProfileDataSource, hashingService, tokenService,   tokenConfig)
+        getWorkerSiteInfo(WorkerProfileDataSource)
+        getWorkerSpecialLicence(WorkerProfileDataSource)
+        getDatesWorked(WorkerProfileDataSource)
+        getWorkerPersonalData(WorkerProfileDataSource)
+        getWorkerExperience(WorkerProfileDataSource)
 
         //aws visualiser route functions for Supervisors
         // putSupervisorSignupInfo
@@ -57,5 +66,10 @@ fun Application.configureRouting(
         putSupervisorSignupInfo(SupervisorProfileDataSource,  hashingService, tokenService,  tokenConfig)
         putSupervisorSiteInfo(SupervisorProfileDataSource)
         putSupervisorPersonalData(SupervisorProfileDataSource)
+
+        //aws visualiser route functions for Supervisors
+        // getSupervisorSignupInfo
+        // getSupervisorSiteInfo
+        // getSupervisorPersonalData
     }
 }

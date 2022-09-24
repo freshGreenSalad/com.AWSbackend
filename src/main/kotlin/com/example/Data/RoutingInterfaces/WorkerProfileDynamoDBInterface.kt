@@ -1,6 +1,6 @@
 package com.example.Data.RoutingInterfaces
 
-import com.example.Data.models.Auth.AuthSaltPassword
+import com.example.Data.models.Auth.AuthSaltPasswordEmail
 import com.example.Data.models.workerVisualiser.*
 import com.example.Data.wrapperClasses.AwsResultWrapper
 
@@ -20,7 +20,7 @@ interface WorkerProfileDynamoDBInterface {
     suspend fun putWorkerExperience(email: String, typeofExperience:String, ratingAggregate:String, previousratingsfromSupervisors:String )
 
     //new aws route from visualiser get worker
-    suspend fun getWorkerSignupAuth(email:String): AwsResultWrapper<AuthSaltPassword>
+    suspend fun getWorkerSignupAuth(email:String): AwsResultWrapper<AuthSaltPasswordEmail>
 
     suspend fun getWorkerSiteInfo(email:String): AwsResultWrapper<WorkerSite>
 
