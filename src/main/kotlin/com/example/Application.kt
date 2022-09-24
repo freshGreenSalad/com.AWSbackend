@@ -14,7 +14,6 @@ fun main(args: Array<String>): Unit =
 
 @Suppress("unused") // application.conf references the main function. This annotation prevents the IDE from marking it as unused.
 fun Application.module() {
-    val profileDataSource = SupervisorProfileDynamoDBDataSource()
     val supervisorProfileDataSource = SupervisorProfileDynamoDBDataSource()
     val workerProfileDynamoDBData = WorkerProfileDynamoDBDataSource()
     val tokenService = JwtTokenService()
@@ -30,7 +29,6 @@ fun Application.module() {
     configureRouting(
         WorkerProfileDataSource = workerProfileDynamoDBData,
         SupervisorProfileDataSource = supervisorProfileDataSource,
-        ProfileDataSource = profileDataSource,
         hashingService = hashingService,
         tokenService = tokenService,
         tokenConfig = tokenConfig

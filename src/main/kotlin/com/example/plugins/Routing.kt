@@ -71,5 +71,8 @@ fun Application.configureRouting(
         // getSupervisorSignupInfo
         // getSupervisorSiteInfo
         // getSupervisorPersonalData
+        getSupervisorSignupInfo(SupervisorProfileDataSource,  hashingService, tokenService,  tokenConfig)
+        getSupervisorSiteInfo(SupervisorProfileDataSource)
+        getSupervisorPersonalData(SupervisorProfileDataSource)
     }
 }

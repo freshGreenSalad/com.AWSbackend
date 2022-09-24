@@ -2,8 +2,27 @@ package com.example.awsServices.dynamoDb.Employer
 
 import aws.sdk.kotlin.services.dynamodb.DynamoDbClient
 import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
+import aws.sdk.kotlin.services.dynamodb.model.GetItemRequest
 import aws.sdk.kotlin.services.dynamodb.model.PutItemRequest
+import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
+import com.example.Data.models.Auth.AuthRequest
+import com.example.Data.models.Auth.AuthResponse
+import com.example.Data.models.Auth.AuthSaltPasswordEmail
 import com.example.Data.models.SupervisorProfileDynamoDBInterface
+import com.example.Data.models.workerVisualiser.Personal
+import com.example.Data.models.workerVisualiser.WorkerSite
+import com.example.Data.wrapperClasses.AwsResultWrapper
+import com.plcoding.security.hashing.HashingService
+import com.plcoding.security.hashing.SaltedHash
+import com.plcoding.security.token.TokenClaim
+import com.plcoding.security.token.TokenConfig
+import com.plcoding.security.token.TokenService
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import org.apache.commons.codec.digest.DigestUtils
 
 class SupervisorProfileDynamoDBDataSource(
 ) : SupervisorProfileDynamoDBInterface {
@@ -104,4 +123,113 @@ class SupervisorProfileDynamoDBDataSource(
 
         }
     }
+
+    override suspend fun getSupervisorSignupAuth(email: String): AwsResultWrapper<AuthSaltPasswordEmail> {
+        val keyToGet = mutableMapOf<String, AttributeValue>()
+        keyToGet["partitionKey"] = AttributeValue.S(email)
+        keyToGet["sortKey"] = AttributeValue.S("signIn")
+
+
+        val request = GetItemRequest {
+            key = keyToGet
+            tableName = "workerAppTable"
+        }
+        return try {
+            val result = DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+                db.getItem(request)
+            }
+            val item = result.item
+            val salt = item?.get("salt").toString()
+            val password = item?.get("password").toString()
+            val authSaltPassword = AuthSaltPasswordEmail(
+                email = email,
+                password = password,
+                salt = salt,
+            )
+
+            return AwsResultWrapper.Success(data = authSaltPassword)
+        } catch (e: Exception) {
+            AwsResultWrapper.Fail()
+        }
+    }
+
+    override suspend fun getSupervisorSiteInfo(email: String): AwsResultWrapper<WorkerSite> {
+        val keyToGet = mutableMapOf<String, AttributeValue>()
+        keyToGet["partitionKey"] = AttributeValue.S(email)
+        keyToGet["sortKey"] = AttributeValue.S("site")
+
+
+        val request = GetItemRequest {
+            key = keyToGet
+            tableName = "workerAppTable"
+        }
+        return try {
+            val result = DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+                db.getItem(request)
+            }
+            val item = result.item
+            val email = item?.get("salt").toString()
+            val address = item?.get("address").toString()
+            val siteExplanation = item?.get("siteExplanation").toString()
+            val siteAddressExplanation = item?.get("siteAddressExplanation").toString()
+            val googleMapsLocation = item?.get("googleMapsLocation").toString()
+            val siteDaysWorkedAndThereUsualStartAndEndTime =
+                item?.get("siteDaysWorkedAndThereUsualStartAndEndTime").toString()
+            val terrain = item?.get("terrain").toString()
+            val sitePhoto = item?.get("sitePhoto").toString()
+            val workerSite = WorkerSite(
+                email = email,
+                address = address,
+                siteExplanation = siteExplanation,
+                siteAddressExplanation = siteAddressExplanation,
+                googleMapsLocation = googleMapsLocation,
+                siteDaysWorkedAndThereUsualStartAndEndTime = siteDaysWorkedAndThereUsualStartAndEndTime,
+                terrain = terrain,
+                sitePhoto = sitePhoto
+            )
+
+            return AwsResultWrapper.Success(data = workerSite)
+        } catch (e: Exception) {
+            AwsResultWrapper.Fail()
+        }
+    }
+
+    override suspend fun getSupervisorPersonalData(email: String): AwsResultWrapper<Personal> {
+        val keyToGet = mutableMapOf<String, AttributeValue>()
+        keyToGet["partitionKey"] = AttributeValue.S(email)
+        keyToGet["sortKey"] = AttributeValue.S("personal")
+
+
+        val request = GetItemRequest {
+            key = keyToGet
+            tableName = "workerAppTable"
+        }
+        return try {
+            val result = DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+                db.getItem(request)
+            }
+            val item = result.item
+            val email = item?.get("email").toString()
+            val supervisor = item?.get("supervisor").toString()
+            val firstname = item?.get("firstname").toString()
+            val lastname = item?.get("lastname").toString()
+            val recordOfAttendance = item?.get("recordOfAttendance").toString()
+            val rate = item?.get("rate").toString()
+            val personalPhoto = item?.get("personalPhoto").toString()
+            val personal = Personal(
+                email = email,
+                supervisor = supervisor,
+                firstname = firstname,
+                lastname = lastname,
+                recordOfAttendance = recordOfAttendance,
+                rate = rate,
+                personalPhoto = personalPhoto
+            )
+
+            return AwsResultWrapper.Success(data = personal)
+        } catch (e: Exception) {
+            AwsResultWrapper.Fail()
+        }
+    }
 }
+
