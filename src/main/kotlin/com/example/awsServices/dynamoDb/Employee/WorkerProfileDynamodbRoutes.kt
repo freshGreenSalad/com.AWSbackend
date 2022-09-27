@@ -84,8 +84,8 @@ fun Route.putWorkerSiteInfo(
         WorkerDataSource.putWorkerSiteInfo(
             email = request.email,
             address = request.address,
-            siteExpliation = request.siteExplanation,
-            siteAddressExplination = request.siteAddressExplanation,
+            siteExplanation = request.siteExplanation,
+            siteAddressExplanation = request.siteAddressExplanation,
             googleMapsLocation = request.googleMapsLocation,
             siteDaysWorkedAndThereUsualStartAndEndTime = request.siteDaysWorkedAndThereUsualStartAndEndTime,
             terrain = request.terrain,
@@ -107,7 +107,7 @@ fun Route.putWorkerSpecialLicence(
             email = request.email,
             licenceType = request.licenceType,
             issueDate = request.issueDate,
-            expireyDate = request.expiryDate,
+            expiryDate = request.expiryDate,
             licencePhoto = request.licencePhoto
         )
         call.respond(HttpStatusCode.OK)
@@ -125,7 +125,7 @@ fun Route.putDatesWorked(
         }
         WorkerDataSource.putDatesWorked(
             email = request.email,
-            aggregate = request.aggregate,
+            aggregate = request.recordOfAttendance,
             jan = request.jan,
             feb = request.feb,
             march = request.march,
@@ -176,7 +176,7 @@ fun Route.putWorkerExperience(
             email = request.email,
             typeofExperience = request.typeofExperience,
             ratingAggregate = request.ratingAggregate,
-            previousratingsfromSupervisors = request.previousratingsfromSupervisors
+            previousRatingsFromSupervisors = request.previousRatingsFromSupervisors
         )
         call.respond(HttpStatusCode.OK)
     }
@@ -213,7 +213,7 @@ fun Route.getWorkerSignupAuth(
         val email: String
 
         if (saltBool == null || passwordBool == null || emailBool == null) {
-            call.respond(HttpStatusCode.Conflict, "Incorrect username or password")
+            call.respond(HttpStatusCode.Conflict, "account does not exist")
             return@post
         } else {
             password = profile.data.password
@@ -323,45 +323,8 @@ fun Route.getWorkerSpecialLicence(
     authenticate {
         get("getWorkerSpecialLicence") {
             val authEmail = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asString()
-            val response = WorkerDataSource.getWorkerSpecialLicence(email = authEmail)
-
-            val emailBool = response.data?.email
-            val licenceTypeBool = response.data?.licenceType
-            val issueDateBool = response.data?.issueDate
-            val expiryDateBool = response.data?.expiryDate
-            val licencePhotoBool = response.data?.licencePhoto
-
-            val email: String
-            val licenceType: String
-            val issueDate: String
-            val expiryDate: String
-            val licencePhoto: String
-
-            if (
-                emailBool == null ||
-                licenceTypeBool == null ||
-                issueDateBool == null ||
-                expiryDateBool == null ||
-                licencePhotoBool == null
-            ) {
-                call.respond(HttpStatusCode.Conflict, "Incorrect username or password")
-                return@get
-            } else {
-                email = response.data.email
-                licenceType = response.data.licenceType
-                issueDate = response.data.issueDate
-                expiryDate = response.data.expiryDate
-                licencePhoto = response.data.licencePhoto
-            }
-
-            val specialLicence = SpecialLicence(
-                email = email,
-                licenceType = licenceType,
-                issueDate = issueDate,
-                expiryDate = expiryDate,
-                licencePhoto = licencePhoto,
-            )
-            call.respond(specialLicence)
+            val response = WorkerDataSource.getWorkerSpecialLicence(email = authEmail).data?.toList() ?: emptyList()
+            call.respond(response)
         }
     }
 }
@@ -375,7 +338,7 @@ fun Route.getDatesWorked(
             val response = WorkerDataSource.getDatesWorked(email = authEmail)
 
             val emailBool = response.data?.email
-            val aggregateBool = response.data?.aggregate
+            val recordOfAttendanceBool = response.data?.recordOfAttendance
             val janBool = response.data?.jan
             val febBool = response.data?.feb
             val marchBool = response.data?.march
@@ -390,7 +353,7 @@ fun Route.getDatesWorked(
             val decemberBool = response.data?.december
 
             val email: String
-            val aggregate: String
+            val recordOfAttendance: String
             val jan: String
             val feb: String
             val march: String
@@ -406,7 +369,7 @@ fun Route.getDatesWorked(
 
             if (
                 emailBool == null ||
-                aggregateBool == null ||
+                recordOfAttendanceBool == null ||
                 janBool == null ||
                 febBool == null ||
                 marchBool == null ||
@@ -424,7 +387,7 @@ fun Route.getDatesWorked(
                 return@get
             } else {
                 email = response.data.email
-                aggregate = response.data.aggregate
+                recordOfAttendance = response.data.recordOfAttendance
                 jan = response.data.jan
                 feb = response.data.feb
                 march = response.data.march
@@ -441,7 +404,7 @@ fun Route.getDatesWorked(
 
             val datesWorked = DatesWorked(
                 email = email,
-                aggregate = aggregate,
+                recordOfAttendance = recordOfAttendance,
                 jan = jan,
                 feb = feb,
                 march = march,
@@ -526,40 +489,10 @@ fun Route.getWorkerExperience(
     authenticate {
         get("getWorkerExperience") {
             val authEmail = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asString()
-            val response = WorkerDataSource.getWorkerExperience(email = authEmail)
-
-            val emailBool = response.data?.email
-            val typeofExperienceBool = response.data?.typeofExperience
-            val ratingAggregateBool = response.data?.ratingAggregate
-            val previousratingsfromSupervisorsBool = response.data?.previousratingsfromSupervisors
-
-            val email: String
-            val typeofExperience: String
-            val ratingAggregate: String
-            val previousratingsfromSupervisors: String
-
-            if (
-                emailBool == null ||
-                typeofExperienceBool == null ||
-                ratingAggregateBool == null ||
-                previousratingsfromSupervisorsBool == null
-            ) {
-                call.respond(HttpStatusCode.Conflict, "Incorrect username or password")
-                return@get
-            } else {
-                email = response.data.email
-                typeofExperience = response.data.typeofExperience
-                ratingAggregate = response.data.ratingAggregate
-                previousratingsfromSupervisors = response.data.previousratingsfromSupervisors
-            }
-
-            val experience = Experience(
-                email = email,
-                typeofExperience = typeofExperience,
-                ratingAggregate = ratingAggregate,
-                previousratingsfromSupervisors = previousratingsfromSupervisors,
-            )
-            call.respond(experience)
+            val response = WorkerDataSource.getWorkerExperience(email = authEmail).data?.toList() ?: emptyList()
+            call.respond(response)
         }
     }
 }
+
+

@@ -42,7 +42,7 @@ class SupervisorProfileDynamoDBDataSource(
 
     override suspend fun putSupervisorSiteInfo(
         email: String,
-        address: String,
+        siteAddress: String,
         siteExpliation: String,
         siteAddressExplination: String,
         googleMapsLocation: String,
@@ -52,8 +52,8 @@ class SupervisorProfileDynamoDBDataSource(
     ) {
         val itemValues = mutableMapOf<String, AttributeValue>()
         itemValues["partitionKey"] = AttributeValue.S(email)
-        itemValues["SortKey"] = AttributeValue.S("Site")
-        itemValues["siteAddress"] = AttributeValue.S(address)
+        itemValues["SortKey"] = AttributeValue.S("site")
+        itemValues["siteAddress"] = AttributeValue.S(siteAddress)
         itemValues["siteExplanation"] = AttributeValue.S(siteExpliation)
         itemValues["siteAddressExplanation"] = AttributeValue.S(siteAddressExplination)
         itemValues["googleMapsLocation"] = AttributeValue.S(googleMapsLocation)
@@ -125,8 +125,8 @@ class SupervisorProfileDynamoDBDataSource(
                 db.getItem(request)
             }
             val item = result.item
-            val salt = item?.get("salt").toString()
-            val password = item?.get("password").toString()
+            val salt = item?.get("salt")?.asS().toString()
+            val password = item?.get("password")?.asS().toString()
             val authSaltPassword = AuthSaltPasswordEmail(
                 email = email,
                 password = password,
@@ -144,7 +144,6 @@ class SupervisorProfileDynamoDBDataSource(
         keyToGet["partitionKey"] = AttributeValue.S(email)
         keyToGet["SortKey"] = AttributeValue.S("site")
 
-
         val request = GetItemRequest {
             key = keyToGet
             tableName = "workerAppTable"
@@ -154,18 +153,18 @@ class SupervisorProfileDynamoDBDataSource(
                 db.getItem(request)
             }
             val item = result.item
-            val email = item?.get("salt").toString()
-            val address = item?.get("address").toString()
-            val siteExplanation = item?.get("siteExplanation").toString()
-            val siteAddressExplanation = item?.get("siteAddressExplanation").toString()
-            val googleMapsLocation = item?.get("googleMapsLocation").toString()
+            val itemEmail = item?.get("partitionKey")?.asS().toString()
+            val siteAddress = item?.get("siteAddress")?.asS().toString()
+            val siteExplanation = item?.get("siteExplanation")?.asS().toString()
+            val siteAddressExplanation = item?.get("siteAddressExplanation")?.asS().toString()
+            val googleMapsLocation = item?.get("googleMapsLocation")?.asS().toString()
             val siteDaysWorkedAndThereUsualStartAndEndTime =
-                item?.get("siteDaysWorkedAndThereUsualStartAndEndTime").toString()
-            val terrain = item?.get("terrain").toString()
-            val sitePhoto = item?.get("sitePhoto").toString()
+                item?.get("siteDaysWorkedAndThereUsualStartAndEndTime")?.asS().toString()
+            val terrain = item?.get("terrain")?.asS().toString()
+            val sitePhoto = item?.get("sitePhoto")?.asS().toString()
             val workerSite = WorkerSite(
-                email = email,
-                address = address,
+                email = itemEmail,
+                address = siteAddress,
                 siteExplanation = siteExplanation,
                 siteAddressExplanation = siteAddressExplanation,
                 googleMapsLocation = googleMapsLocation,
@@ -195,15 +194,15 @@ class SupervisorProfileDynamoDBDataSource(
                 db.getItem(request)
             }
             val item = result.item
-            val email = item?.get("email").toString()
-            val supervisor = item?.get("supervisor").toString()
-            val firstname = item?.get("firstname").toString()
-            val lastname = item?.get("lastname").toString()
-            val recordOfAttendance = item?.get("recordOfAttendance").toString()
-            val rate = item?.get("rate").toString()
-            val personalPhoto = item?.get("personalPhoto").toString()
+            val itemEmail = item?.get("partitionKey")?.asS().toString()
+            val supervisor = item?.get("supervisor")?.asS().toString()
+            val firstname = item?.get("firstname")?.asS().toString()
+            val lastname = item?.get("lastname")?.asS().toString()
+            val recordOfAttendance = item?.get("recordOfAttendance")?.asS().toString()
+            val rate = item?.get("rate")?.asS().toString()
+            val personalPhoto = item?.get("personalPhoto")?.asS().toString()
             val personal = Personal(
-                email = email,
+                email = itemEmail,
                 supervisor = supervisor,
                 firstname = firstname,
                 lastname = lastname,

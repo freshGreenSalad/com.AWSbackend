@@ -46,8 +46,8 @@ class WorkerProfileDynamoDBDataSource(
     override suspend fun putWorkerSiteInfo(
         email: String,
         address: String,
-        siteExpliation: String,
-        siteAddressExplination: String,
+        siteExplanation: String,
+        siteAddressExplanation: String,
         googleMapsLocation: String,
         siteDaysWorkedAndThereUsualStartAndEndTime: String,
         terrain: String,
@@ -56,10 +56,10 @@ class WorkerProfileDynamoDBDataSource(
 
         val itemValues = mutableMapOf<String, AttributeValue>()
         itemValues["partitionKey"] = AttributeValue.S(email)
-        itemValues["SortKey"] = AttributeValue.S("Site")
+        itemValues["SortKey"] = AttributeValue.S("site")
         itemValues["siteAddress"] = AttributeValue.S(address)
-        itemValues["siteExplanation"] = AttributeValue.S(siteExpliation)
-        itemValues["siteAddressExplanation"] = AttributeValue.S(siteAddressExplination)
+        itemValues["siteExplanation"] = AttributeValue.S(siteExplanation)
+        itemValues["siteAddressExplanation"] = AttributeValue.S(siteAddressExplanation)
         itemValues["googleMapsLocation"] = AttributeValue.S(googleMapsLocation)
         itemValues["siteDaysWorkedAndThereUsualStartAndEndTime"] =
             AttributeValue.S(siteDaysWorkedAndThereUsualStartAndEndTime)
@@ -85,7 +85,7 @@ class WorkerProfileDynamoDBDataSource(
         email: String,
         licenceType: String,
         issueDate: String,
-        expireyDate: String,
+        expiryDate: String,
         licencePhoto: String
     ) {
         val itemValues = mutableMapOf<String, AttributeValue>()
@@ -93,7 +93,7 @@ class WorkerProfileDynamoDBDataSource(
         itemValues["SortKey"] = AttributeValue.S("licence#$licenceType")
         itemValues["licenceType"] = AttributeValue.S(licenceType)
         itemValues["issueDate"] = AttributeValue.S(issueDate)
-        itemValues["expireyDate"] = AttributeValue.S(expireyDate)
+        itemValues["expiryDate"] = AttributeValue.S(expiryDate)
         itemValues["licencePhoto"] = AttributeValue.S(licencePhoto)
 
         val request = PutItemRequest {
@@ -130,6 +130,7 @@ class WorkerProfileDynamoDBDataSource(
         val itemValues = mutableMapOf<String, AttributeValue>()
         itemValues["partitionKey"] = AttributeValue.S(email)
         itemValues["SortKey"] = AttributeValue.S("datesWorked")
+        itemValues["recordOfAttendance"] = AttributeValue.S("98")
         itemValues["jan"] = AttributeValue.S(jan)
         itemValues["feb"] = AttributeValue.S(feb)
         itemValues["march"] = AttributeValue.S(march)
@@ -201,7 +202,8 @@ class WorkerProfileDynamoDBDataSource(
         val itemValues = mutableMapOf<String, AttributeValue>()
         itemValues["partitionKey"] = AttributeValue.S(email)
         itemValues["SortKey"] = AttributeValue.S("experience#$typeofExperience")
-        itemValues["ratingAggregate"] = AttributeValue.S(typeofExperience)
+        itemValues["typeofExperience"] = AttributeValue.S(typeofExperience)
+        itemValues["ratingAggregate"] = AttributeValue.S(ratingAggregate)
         itemValues["previousRatingsFromSupervisors"] = AttributeValue.S(previousRatingsFromSupervisors)
 
         val request = PutItemRequest {
@@ -229,7 +231,7 @@ class WorkerProfileDynamoDBDataSource(
     override suspend fun getWorkerSignupAuth(email: String): AwsResultWrapper<AuthSaltPasswordEmail> {
         val keyToGet = mutableMapOf<String, AttributeValue>()
         keyToGet["partitionKey"] = AttributeValue.S(email)
-        keyToGet["sortKey"] = AttributeValue.S("signIn")
+        keyToGet["SortKey"] = AttributeValue.S("signIn")
 
 
         val request = GetItemRequest {
@@ -241,8 +243,8 @@ class WorkerProfileDynamoDBDataSource(
                 db.getItem(request)
             }
             val item = result.item
-            val salt = item?.get("salt").toString()
-            val password = item?.get("password").toString()
+            val salt = item?.get("salt")?.asS().toString()
+            val password = item?.get("password")?.asS().toString()
             val authSaltPassword = AuthSaltPasswordEmail(
                 email = email,
                 password = password,
@@ -258,8 +260,7 @@ class WorkerProfileDynamoDBDataSource(
     override suspend fun getWorkerSiteInfo(email: String): AwsResultWrapper<WorkerSite> {
         val keyToGet = mutableMapOf<String, AttributeValue>()
         keyToGet["partitionKey"] = AttributeValue.S(email)
-        keyToGet["sortKey"] = AttributeValue.S("site")
-
+        keyToGet["SortKey"] = AttributeValue.S("site")
 
         val request = GetItemRequest {
             key = keyToGet
@@ -270,16 +271,17 @@ class WorkerProfileDynamoDBDataSource(
                 db.getItem(request)
             }
             val item = result.item
-            val email = item?.get("salt").toString()
-            val address = item?.get("address").toString()
-            val siteExplanation = item?.get("siteExplanation").toString()
-            val siteAddressExplanation = item?.get("siteAddressExplanation").toString()
-            val googleMapsLocation = item?.get("googleMapsLocation").toString()
-            val siteDaysWorkedAndThereUsualStartAndEndTime = item?.get("siteDaysWorkedAndThereUsualStartAndEndTime").toString()
-            val terrain = item?.get("terrain").toString()
-            val sitePhoto = item?.get("sitePhoto").toString()
+            val itemEmail = item?.get("partitionKey")?.asS().toString()
+            val address = item?.get("siteAddress")?.asS().toString()
+            val siteExplanation = item?.get("siteExplanation")?.asS().toString()
+            val siteAddressExplanation = item?.get("siteAddressExplanation")?.asS().toString()
+            val googleMapsLocation = item?.get("googleMapsLocation")?.asS().toString()
+            val siteDaysWorkedAndThereUsualStartAndEndTime =
+                item?.get("siteDaysWorkedAndThereUsualStartAndEndTime")?.asS().toString()
+            val terrain = item?.get("terrain")?.asS().toString()
+            val sitePhoto = item?.get("sitePhoto")?.asS().toString()
             val workerSite = WorkerSite(
-                email = email,
+                email = itemEmail,
                 address = address,
                 siteExplanation = siteExplanation,
                 siteAddressExplanation = siteAddressExplanation,
@@ -295,37 +297,45 @@ class WorkerProfileDynamoDBDataSource(
         }
     }
 
-    override suspend fun getWorkerSpecialLicence(email: String): AwsResultWrapper<SpecialLicence> {
-        val keyToGet = mutableMapOf<String, AttributeValue>()
-        keyToGet["partitionKey"] = AttributeValue.S(email)
-        keyToGet["SortKey"] = AttributeValue.S("licence")
+    override suspend fun getWorkerSpecialLicence(email: String): AwsResultWrapper<MutableList<SpecialLicence>> {
+        val attrValues = mutableMapOf<String, AttributeValue>()
+        attrValues[":partitionKey"] = AttributeValue.S("email")
+        attrValues[":SortKey"] = AttributeValue.S("licence")
 
-
-        val request = GetItemRequest {
-            key = keyToGet
+        //leave the below expression alone change the values in the attribute value
+        val request = QueryRequest {
             tableName = "workerAppTable"
+            keyConditionExpression = "partitionKey = :partitionKey AND begins_with(SortKey, :SortKey)"
+            this.expressionAttributeValues = attrValues
         }
-        return try {
-            val result = DynamoDbClient { region = "ap-southeast-2" }.use { db ->
-                db.getItem(request)
+        val listOfLicence = mutableListOf<SpecialLicence>()
+        val result = DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+            db.query(request)
+        }.items
+        println(result)
+        if (result != null) {
+            for (item in result) {
+                val itemEmail = item["partitionKey"]?.asS().toString()
+                val licenceType = item["licenceType"]?.asS().toString()
+                val issueDate = item["issueDate"]?.asS().toString()
+                val expiryDate = item["expiryDate"]?.asS().toString()
+                val licencePhoto = item["licencePhoto"]?.asS().toString()
+                val specialLicence = SpecialLicence(
+                    email = itemEmail,
+                    licenceType = licenceType,
+                    issueDate = issueDate,
+                    expiryDate = expiryDate,
+                    licencePhoto = licencePhoto
+                )
+                listOfLicence.add(specialLicence)
             }
-            val item = result.item
-            val email = item?.get("email").toString()
-            val licenceType = item?.get("licenceType").toString()
-            val issueDate = item?.get("issueDate").toString()
-            val expiryDate = item?.get("expiryDate").toString()
-            val licencePhoto = item?.get("licencePhoto").toString()
-            val specialLicence = SpecialLicence(
-                email = email,
-                licenceType = licenceType,
-                issueDate = issueDate,
-                expiryDate = expiryDate,
-                licencePhoto = licencePhoto
-            )
+        }
 
-            return AwsResultWrapper.Success(data = specialLicence)
+        return try {
+            AwsResultWrapper.Success(data = listOfLicence)
         } catch (e: Exception) {
             AwsResultWrapper.Fail()
+
         }
     }
 
@@ -344,23 +354,23 @@ class WorkerProfileDynamoDBDataSource(
                 db.getItem(request)
             }
             val item = result.item
-            val email = item?.get("email").toString()
-            val aggregate = item?.get("aggregate").toString()
-            val jan = item?.get("jan").toString()
-            val feb = item?.get("feb").toString()
-            val march = item?.get("march").toString()
-            val april = item?.get("april").toString()
-            val may = item?.get("may").toString()
-            val june = item?.get("june").toString()
-            val july = item?.get("july").toString()
-            val august = item?.get("august").toString()
-            val september = item?.get("september").toString()
-            val october = item?.get("october").toString()
-            val november = item?.get("november").toString()
-            val december = item?.get("december").toString()
+            val itemEmail = item?.get("partitionKey")?.asS().toString()
+            val recordOfAttendance = item?.get("recordOfAttendance")?.asS().toString()
+            val jan = item?.get("jan")?.asS().toString()
+            val feb = item?.get("feb")?.asS().toString()
+            val march = item?.get("march")?.asS().toString()
+            val april = item?.get("april")?.asS().toString()
+            val may = item?.get("may")?.asS().toString()
+            val june = item?.get("june")?.asS().toString()
+            val july = item?.get("july")?.asS().toString()
+            val august = item?.get("august")?.asS().toString()
+            val september = item?.get("september")?.asS().toString()
+            val october = item?.get("october")?.asS().toString()
+            val november = item?.get("november")?.asS().toString()
+            val december = item?.get("december")?.asS().toString()
             val datesWorked = DatesWorked(
-                email = email,
-                aggregate = aggregate,
+                email = itemEmail,
+                recordOfAttendance = recordOfAttendance,
                 jan = jan,
                 feb = feb,
                 march = march,
@@ -396,15 +406,15 @@ class WorkerProfileDynamoDBDataSource(
                 db.getItem(request)
             }
             val item = result.item
-            val email = item?.get("email").toString()
-            val supervisor = item?.get("supervisor").toString()
-            val firstname = item?.get("firstname").toString()
-            val lastname = item?.get("lastname").toString()
-            val recordOfAttendance = item?.get("recordOfAttendance").toString()
-            val rate = item?.get("rate").toString()
-            val personalPhoto = item?.get("personalPhoto").toString()
+            val itemEmail = item?.get("partitionKey")?.asS().toString()
+            val supervisor = item?.get("supervisor")?.asS().toString()
+            val firstname = item?.get("firstname")?.asS().toString()
+            val lastname = item?.get("lastname")?.asS().toString()
+            val recordOfAttendance = item?.get("recordOfAttendance")?.asS().toString()
+            val rate = item?.get("rate")?.asS().toString()
+            val personalPhoto = item?.get("personalPhoto")?.asS().toString()
             val personal = Personal(
-                email = email,
+                email = itemEmail,
                 supervisor = supervisor,
                 firstname = firstname,
                 lastname = lastname,
@@ -419,35 +429,44 @@ class WorkerProfileDynamoDBDataSource(
         }
     }
 
-    override suspend fun getWorkerExperience(email: String): AwsResultWrapper<Experience> {
-        val keyToGet = mutableMapOf<String, AttributeValue>()
-        keyToGet["partitionKey"] = AttributeValue.S(email)
-        keyToGet["SortKey"] = AttributeValue.S("experience")
+    override suspend fun getWorkerExperience(email: String): AwsResultWrapper<MutableList<Experience>> {
 
+        val attrValues = mutableMapOf<String, AttributeValue>()
+        attrValues[":partitionKey"] = AttributeValue.S("email")
+        attrValues[":SortKey"] = AttributeValue.S("experience")
 
-        val request = GetItemRequest {
-            key = keyToGet
+        //leave the below expression alone change the values in the attribute value
+        val request = QueryRequest {
             tableName = "workerAppTable"
+            keyConditionExpression = "partitionKey = :partitionKey AND begins_with(SortKey, :SortKey)"
+            this.expressionAttributeValues = attrValues
         }
-        return try {
-            val result = DynamoDbClient { region = "ap-southeast-2" }.use { db ->
-                db.getItem(request)
+        val listOfExperience = mutableListOf<Experience>()
+        val result = DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+            db.query(request)
+        }.items
+        println(result)
+        if (result != null) {
+            for (item in result) {
+                val itemEmail = item["partitionKey"]?.asS().toString()
+                val typeofExperience = item["typeofExperience"]?.asS().toString()
+                val ratingAggregate = item["ratingAggregate"]?.asS().toString()
+                val previousRatingsFromSupervisors = item["previousRatingsFromSupervisors"]?.asS().toString()
+                val experience = Experience(
+                    email = itemEmail,
+                    typeofExperience = typeofExperience,
+                    ratingAggregate = ratingAggregate,
+                    previousRatingsFromSupervisors = previousRatingsFromSupervisors
+                )
+                listOfExperience.add(experience)
             }
-            val item = result.item
-            val email = item?.get("email").toString()
-            val typeofExperience = item?.get("typeofExperience").toString()
-            val ratingAggregate = item?.get("ratingAggregate").toString()
-            val previousRatingsFromSupervisors = item?.get("previousRatingsFromSupervisors").toString()
-            val experience = Experience(
-                email = email,
-                typeofExperience = typeofExperience,
-                ratingAggregate = ratingAggregate,
-                previousratingsfromSupervisors = previousRatingsFromSupervisors
-            )
+        }
 
-            return AwsResultWrapper.Success(data = experience)
+        return try {
+            AwsResultWrapper.Success(data = listOfExperience)
         } catch (e: Exception) {
             AwsResultWrapper.Fail()
+
         }
     }
 }

@@ -5,5 +5,6 @@ data class Experience(
     val email: String,
     val typeofExperience: String,
     val ratingAggregate: String,
-    val previousratingsfromSupervisors: String
+    val previousRatingsFromSupervisors: String
 )
+

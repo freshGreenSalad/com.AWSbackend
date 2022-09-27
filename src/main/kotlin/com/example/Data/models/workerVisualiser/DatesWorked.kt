@@ -3,7 +3,7 @@ package com.example.Data.models.workerVisualiser
 @kotlinx.serialization.Serializable
 data class DatesWorked(
     val email: String,
-    val aggregate: String,
+    val recordOfAttendance: String,
     val jan: String,
     val feb: String,
     val march: String,
