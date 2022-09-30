@@ -17,14 +17,14 @@ class WorkerProfileDynamoDBDataSource(
     // putDatesWorked
     // putWorkerPersonalData
     // putWorkerExperience
-    override suspend fun putWorkerSignupInfo(email: String, password: String, salt: String): Boolean {
+    override suspend fun putWorkerSignupInfo(email: String, password: String, salt: String, isSupervisor: Boolean): Boolean {
         val itemValues = mutableMapOf<String, AttributeValue>()
 
         itemValues["partitionKey"] = AttributeValue.S(email)
         itemValues["SortKey"] = AttributeValue.S("signIn")
         itemValues["password"] = AttributeValue.S(password)
         itemValues["salt"] = AttributeValue.S(salt)
-        itemValues["isSupervisor"] = AttributeValue.Bool(false)
+        itemValues["isSupervisor"] = AttributeValue.Bool(isSupervisor)
 
         val request = PutItemRequest {
             tableName = "workerAppTable"
@@ -245,13 +245,15 @@ class WorkerProfileDynamoDBDataSource(
             val item = result.item
             val salt = item?.get("salt")?.asS().toString()
             val password = item?.get("password")?.asS().toString()
-            val authSaltPassword = AuthSaltPasswordEmail(
+            val isSupervisor = item?.get("isSupervisor")?.asBool()?:false
+            val authSaltPasswordEmail = AuthSaltPasswordEmail(
                 email = email,
                 password = password,
                 salt = salt,
+                isSupervisor = isSupervisor
             )
 
-            return AwsResultWrapper.Success(data = authSaltPassword)
+            return AwsResultWrapper.Success(data = authSaltPasswordEmail)
         } catch (e: Exception) {
             AwsResultWrapper.Fail()
         }

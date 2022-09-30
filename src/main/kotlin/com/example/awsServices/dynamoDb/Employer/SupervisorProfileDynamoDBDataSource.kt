@@ -131,6 +131,7 @@ class SupervisorProfileDynamoDBDataSource(
                 email = email,
                 password = password,
                 salt = salt,
+                isSupervisor = true
             )
 
             return AwsResultWrapper.Success(data = authSaltPassword)

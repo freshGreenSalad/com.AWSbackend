@@ -7,7 +7,7 @@ import com.example.Data.wrapperClasses.AwsResultWrapper
 interface WorkerProfileDynamoDBInterface {
 
     //new aws route from visualiser put worker
-    suspend fun putWorkerSignupInfo(email:String, password:String, salt:String):Boolean
+    suspend fun putWorkerSignupInfo(email:String, password:String, salt:String, isSupervisor: Boolean):Boolean
 
     suspend fun putWorkerSiteInfo(email:String, address:String, siteExplanation:String, siteAddressExplanation:String, googleMapsLocation:String, siteDaysWorkedAndThereUsualStartAndEndTime:String, terrain:String, sitePhoto:String )
 

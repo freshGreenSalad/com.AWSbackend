@@ -66,7 +66,9 @@ fun Route.putSupervisorSignupInfo(
         call.respond(
             status = HttpStatusCode.OK,
             message = AuthResponse(
-                token = token
+                token = token,
+                isSupervisor = true
+
             )
         )
     }
@@ -176,7 +178,8 @@ fun Route.getSupervisorSignupInfo(
         call.respond(
             status = HttpStatusCode.OK,
             message = AuthResponse(
-                token = token
+                token = token,
+                isSupervisor = true
             )
         )
 

@@ -2,6 +2,7 @@ package com.example.awsServices.dynamoDb
 
 import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
 import com.example.Data.models.Auth.AuthRequest
+import com.example.Data.models.Auth.AuthRequestWithIsSupervisor
 import com.example.Data.models.Auth.AuthResponse
 import com.example.Data.models.workerVisualiser.*
 import com.plcoding.security.hashing.HashingService
@@ -32,7 +33,7 @@ fun Route.putWorkerSignupInfo(
     tokenConfig: TokenConfig
 ) {
     post("putWorkerSignupInfo") {
-        val request = call.receiveOrNull<AuthRequest>() ?: kotlin.run {
+        val request = call.receiveOrNull<AuthRequestWithIsSupervisor>() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
@@ -49,7 +50,8 @@ fun Route.putWorkerSignupInfo(
         val wasAcknowledged = WorkerDataSource.putWorkerSignupInfo(
             email = request.email,
             password = saltedHash.hash,
-            salt = saltedHash.salt
+            salt = saltedHash.salt,
+            isSupervisor = request.isSupervisor
         )
 
         if (!wasAcknowledged) {
@@ -67,7 +69,8 @@ fun Route.putWorkerSignupInfo(
         call.respond(
             status = HttpStatusCode.OK,
             message = AuthResponse(
-                token = token
+                token = token,
+                isSupervisor = false
             )
         )
     }
@@ -211,6 +214,7 @@ fun Route.getWorkerSignupAuth(
         val password: String
         val salt: String
         val email: String
+        val isSupervisor = profile.data?.isSupervisor?:false
 
         if (saltBool == null || passwordBool == null || emailBool == null) {
             call.respond(HttpStatusCode.Conflict, "account does not exist")
@@ -245,7 +249,8 @@ fun Route.getWorkerSignupAuth(
         call.respond(
             status = HttpStatusCode.OK,
             message = AuthResponse(
-                token = token
+                token = token,
+                isSupervisor = isSupervisor
             )
         )
     }
