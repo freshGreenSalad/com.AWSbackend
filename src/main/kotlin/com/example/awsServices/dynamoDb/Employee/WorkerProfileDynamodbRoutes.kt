@@ -150,16 +150,14 @@ fun Route.putWorkerPersonalData(
     WorkerDataSource: WorkerProfileDynamoDBInterface
 ) {
     post("putWorkerPersonalData") {
-        val request = call.receiveOrNull<Personal>() ?: kotlin.run {
+        val request = call.receiveOrNull<WorkerProfile>() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
         WorkerDataSource.putWorkerPersonalData(
             email = request.email,
-            supervisor = request.supervisor,
-            firstname = request.firstname,
-            lastname = request.lastname,
-            recordOfAttendance = request.recordOfAttendance,
+            firstname = request.firstName,
+            lastname = request.lastName,
             rate = request.rate,
             personalPhoto = request.personalPhoto
         )

@@ -4,16 +4,16 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Licence(
-    var fullLicence: Boolean,
-    var learners: Boolean,
-    var restricted: Boolean,
-    var wheels: Boolean,
-    var tracks: Boolean,
-    var rollers: Boolean,
-    var  forks: Boolean,
-    var  hazardus: Boolean,
-    var  class2: Boolean,
-    var  class3: Boolean,
-    var  class4: Boolean,
-    var  class5: Boolean,
+    val typeOfLicence: TypeOfLicence,
+    val licenceMap: Map<String,Boolean>,
+    val highestClass: HighestClass
 )
+
+
+enum class TypeOfLicence {
+    Learners, Restricted, Full, Empty
+}
+
+enum class HighestClass {
+    Class1, Class2, Class3, Class4, Class5
+}

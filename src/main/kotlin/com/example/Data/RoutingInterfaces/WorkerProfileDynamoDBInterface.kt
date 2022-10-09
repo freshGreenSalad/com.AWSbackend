@@ -15,7 +15,7 @@ interface WorkerProfileDynamoDBInterface {
 
     suspend fun putDatesWorked(email: String, aggregate:String, jan:String, feb:String,march:String, april:String, may:String, june:String, july:String, august:String, september:String, october:String, november:String, december:String)
 
-    suspend fun putWorkerPersonalData(email: String, supervisor:String, firstname:String, lastname:String, recordOfAttendance:String, rate:String, personalPhoto:String)
+    suspend fun putWorkerPersonalData(email: String, firstname:String, lastname:String, rate:Int, personalPhoto:String)
 
     suspend fun putWorkerExperience(email: String, typeofExperience:String, ratingAggregate:String, previousRatingsFromSupervisors:String )
 

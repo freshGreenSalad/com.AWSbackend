@@ -161,21 +161,17 @@ class WorkerProfileDynamoDBDataSource(
 
     override suspend fun putWorkerPersonalData(
         email: String,
-        supervisor: String,
         firstname: String,
         lastname: String,
-        recordOfAttendance: String,
-        rate: String,
+        rate: Int,
         personalPhoto: String
     ) {
         val itemValues = mutableMapOf<String, AttributeValue>()
         itemValues["partitionKey"] = AttributeValue.S(email)
         itemValues["SortKey"] = AttributeValue.S("personal")
-        itemValues["supervisor"] = AttributeValue.S(supervisor)
         itemValues["firstname"] = AttributeValue.S(firstname)
         itemValues["lastname"] = AttributeValue.S(lastname)
-        itemValues["recordOfAttendance"] = AttributeValue.S(recordOfAttendance)
-        itemValues["rate"] = AttributeValue.S(rate)
+        itemValues["rate"] = AttributeValue.N(rate.toString())
         itemValues["personalPhoto"] = AttributeValue.S(personalPhoto)
 
         val request = PutItemRequest {

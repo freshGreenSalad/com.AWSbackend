@@ -19,6 +19,8 @@ fun Application.configureRouting(
     tokenConfig: TokenConfig
 ) {
     routing {
+        //test presign
+        testPresign()
         //puts the initial five profiles into the cloud
         puts3()
 

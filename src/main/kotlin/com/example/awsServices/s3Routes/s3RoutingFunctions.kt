@@ -3,11 +3,16 @@ package com.example.plugins
 import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.model.GetObjectRequest
 import aws.sdk.kotlin.services.s3.model.PutObjectRequest
+import aws.sdk.kotlin.services.s3.presigners.presign
 import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.content.decodeToString
+import aws.smithy.kotlin.runtime.http.Url
 import com.example.Data.models.WorkerPrimaryInfo
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.random.Random
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 suspend fun putS3Object(bucketName: String, workerList: List<WorkerPrimaryInfo>) {
 
@@ -41,5 +46,20 @@ suspend fun getObjectBytes(bucketName: String, keyName: String): String? {
         }
     }
     return response
+}
+
+suspend fun PresignPutRequest(email:String, fileNaming:String):Url {
+    val hash = Random.nextInt(0, 10000).toString()
+
+    val request = PutObjectRequest {
+        bucket = "testbucketletshopeitsfree"
+        key = email+fileNaming+hash
+    }
+    val clientConfig = S3Client { region = "ap-southeast-2" }.config
+
+    val presign = request.presign(config = clientConfig, duration = (60*1000*10).toDuration(DurationUnit.MILLISECONDS)
+    )
+
+    return presign.url
 }
 
