@@ -1,9 +1,10 @@
-package com.example.awsServices.dynamoDb
+package com.example.awsServices.dynamoDb.employer
 
 import com.example.Data.models.Auth.AuthRequest
 import com.example.Data.models.Auth.AuthResponse
 import com.example.Data.models.SupervisorProfileDynamoDBInterface
-import com.example.Data.models.workerVisualiser.Personal
+import com.example.Data.models.supervisorVisualiser.SupervisorProfile
+import com.example.Data.models.supervisorVisualiser.SupervisorSite
 import com.example.Data.models.workerVisualiser.WorkerSite
 import com.plcoding.security.hashing.HashingService
 import com.plcoding.security.hashing.SaltedHash
@@ -31,7 +32,7 @@ fun Route.putSupervisorSignupInfo(
     tokenConfig: TokenConfig
 ) {
     post("putSupervisorSignupInfo") {
-        val request = call.receiveOrNull<AuthRequest>() ?: kotlin.run {
+        val request = kotlin.runCatching { call.receiveNullable<AuthRequest>() }.getOrNull() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
@@ -78,19 +79,19 @@ fun Route.putSupervisorSiteInfo(
     SupervisorDataSource: SupervisorProfileDynamoDBInterface,
 ) {
     post("putSupervisorSiteInfo") {
-        val request = call.receiveOrNull<WorkerSite>() ?: kotlin.run {
+        val request = kotlin.runCatching { call.receiveNullable<SupervisorSite>() }.getOrNull() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
         SupervisorDataSource.putSupervisorSiteInfo(
             email = request.email,
             address = request.address,
-            siteExpliation = request.siteExplanation,
-            siteAddressExplination = request.siteAddressExplanation,
-            googleMapsLocation = request.googleMapsLocation,
-            siteDaysWorkedAndThereUsualStartAndEndTime = request.siteDaysWorkedAndThereUsualStartAndEndTime,
-            terrain = request.terrain,
-            sitePhoto = request.sitePhoto
+            //siteExpliation = request.siteExplanation,
+            //siteAddressExplination = request.siteAddressExplanation,
+            googleMapsLocation = request.location,
+            //siteDaysWorkedAndThereUsualStartAndEndTime = request.siteDaysWorkedAndThereUsualStartAndEndTime,
+            //terrain = request.terrain,
+            //sitePhoto = request.sitePhoto
         )
         call.respond(HttpStatusCode.OK)
     }
@@ -100,17 +101,14 @@ fun Route.putSupervisorPersonalData(
     SupervisorDataSource: SupervisorProfileDynamoDBInterface,
 ) {
     post("putSupervisorPersonalData") {
-        val request = call.receiveOrNull<Personal>() ?: kotlin.run {
+        val request = kotlin.runCatching { call.receiveNullable<SupervisorProfile>() }.getOrNull() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
         SupervisorDataSource.putSupervisorPersonalData(
             email = request.email,
-            supervisor = request.supervisor,
-            firstname = request.firstname,
-            lastname = request.lastname,
-            recordOfAttendance = request.recordOfAttendance,
-            rate = request.rate,
+            firstname = request.firstName,
+            lastname = request.lastName,
             personalPhoto = request.personalPhoto
         )
         call.respond(HttpStatusCode.OK)
@@ -130,7 +128,7 @@ fun Route.getSupervisorSignupInfo(
 ) {
 
     post("getSupervisorSignupInfo") {
-        val request = call.receiveOrNull<AuthRequest>() ?: kotlin.run {
+        val request = kotlin.runCatching { call.receiveNullable<AuthRequest>() }.getOrNull() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
@@ -263,54 +261,41 @@ fun Route.getSupervisorPersonalData(
             val response = SupervisorDataSource.getSupervisorPersonalData(email = authEmail)
 
             val emailBool = response.data?.email
-            val supervisorBool = response.data?.supervisor
-            val firstnameBool = response.data?.firstname
-            val lastnameBool = response.data?.lastname
-            val recordOfAttendanceBool = response.data?.recordOfAttendance
-            val rateBool = response.data?.rate
+            val firstnameBool = response.data?.firstName
+            val lastnameBool = response.data?.lastName
             val personalPhotoBool = response.data?.personalPhoto
 
             val email: String
-            val supervisor: String
             val firstname: String
             val lastname: String
-            val recordOfAttendance: String
-            val rate: String
             val personalPhoto: String
 
             if (
                 emailBool == null ||
-                supervisorBool == null ||
                 firstnameBool == null ||
                 lastnameBool == null ||
-                recordOfAttendanceBool == null ||
-                rateBool == null ||
                 personalPhotoBool == null
             ) {
                 call.respond(HttpStatusCode.Conflict, "Incorrect username or password")
                 return@get
             } else {
                 email = response.data.email
-                supervisor = response.data.supervisor
-                firstname = response.data.firstname
-                lastname = response.data.lastname
-                recordOfAttendance = response.data.recordOfAttendance
-                rate = response.data.rate
+                firstname = response.data.firstName
+                lastname = response.data.lastName
                 personalPhoto = response.data.personalPhoto
             }
 
-            val personal = Personal(
+            val personal = SupervisorProfile(
                 email = email,
-                supervisor = supervisor,
-                firstname = firstname,
-                lastname = lastname,
-                recordOfAttendance = recordOfAttendance,
-                rate = rate,
+                firstName = firstname,
+                lastName = lastname,
                 personalPhoto = personalPhoto
             )
             call.respond(personal)
         }
     }
 }
+
+
 
 

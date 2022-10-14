@@ -4,6 +4,7 @@ import com.example.*
 import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
 import com.example.Data.models.SupervisorProfileDynamoDBInterface
 import com.example.awsServices.dynamoDb.*
+import com.example.awsServices.dynamoDb.employer.*
 import com.example.awsServices.ses.testSendEmail
 import com.plcoding.security.hashing.HashingService
 import com.plcoding.security.token.TokenConfig
@@ -33,6 +34,9 @@ fun Application.configureRouting(
         //test send emil
         testSendEmail()
 
+        //test gsi
+        getWorkerS(WorkerProfileDataSource)
+
         //aws visualiser route functions for workers
         // putWorkerSignupInfo
         // putWorkerSiteInfo
@@ -46,6 +50,7 @@ fun Application.configureRouting(
         putDatesWorked(WorkerProfileDataSource)
         putWorkerPersonalData(WorkerProfileDataSource)
         putWorkerExperience(WorkerProfileDataSource)
+        putWorkerDriversLicence(WorkerProfileDataSource)
 
         //aws visualiser route functions for workers
         // getWorkerSignupInfo
@@ -60,6 +65,10 @@ fun Application.configureRouting(
         getDatesWorked(WorkerProfileDataSource)
         getWorkerPersonalData(WorkerProfileDataSource)
         getWorkerExperience(WorkerProfileDataSource)
+        getWorkerDriversLicence(WorkerProfileDataSource)
+
+        //delete worker functions
+        deleteAccount(WorkerProfileDataSource)
 
         //aws visualiser route functions for Supervisors
         // putSupervisorSignupInfo

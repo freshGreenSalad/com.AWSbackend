@@ -5,17 +5,26 @@ val commons_codec_version: String by project
 
 plugins {
     application
+    id("io.ktor.plugin") version "2.1.2"
+    id("com.github.johnrengelman.shadow") version "6.1.0"
     kotlin("jvm") version "1.6.21"
-                id("org.jetbrains.kotlin.plugin.serialization") version "1.6.21"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.6.21"
 }
 
 group = "com.example"
+
 version = "0.0.1"
+
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")
-
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = application.mainClass
+    }
 }
 
 repositories {
@@ -46,6 +55,9 @@ dependencies {
 
     //coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
+
+    // Google Maps
+    implementation("com.google.maps:google-maps-services:2.1.0")
 
     implementation("commons-codec:commons-codec:1.15")
 

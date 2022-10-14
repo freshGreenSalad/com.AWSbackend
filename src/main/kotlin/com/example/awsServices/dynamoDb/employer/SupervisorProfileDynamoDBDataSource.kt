@@ -1,4 +1,4 @@
-package com.example.awsServices.dynamoDb.Employer
+package com.example.awsServices.dynamoDb.employer
 
 import aws.sdk.kotlin.services.dynamodb.DynamoDbClient
 import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
@@ -6,7 +6,8 @@ import aws.sdk.kotlin.services.dynamodb.model.GetItemRequest
 import aws.sdk.kotlin.services.dynamodb.model.PutItemRequest
 import com.example.Data.models.Auth.AuthSaltPasswordEmail
 import com.example.Data.models.SupervisorProfileDynamoDBInterface
-import com.example.Data.models.workerVisualiser.Personal
+import com.example.Data.models.general.Location
+import com.example.Data.models.supervisorVisualiser.SupervisorProfile
 import com.example.Data.models.workerVisualiser.WorkerSite
 import com.example.Data.wrapperClasses.AwsResultWrapper
 
@@ -43,23 +44,29 @@ class SupervisorProfileDynamoDBDataSource(
     override suspend fun putSupervisorSiteInfo(
         email: String,
         siteAddress: String,
-        siteExpliation: String,
-        siteAddressExplination: String,
-        googleMapsLocation: String,
-        siteDaysWorkedAndThereUsualStartAndEndTime: String,
-        terrain: String,
-        sitePhoto: String
+        //siteExpliation: String,
+        //siteAddressExplination: String,
+        googleMapsLocation: Location,
+        //siteDaysWorkedAndThereUsualStartAndEndTime: String,
+        //terrain: String,
+        //sitePhoto: String
     ) {
+
+        val latlng = mapOf(
+            "lat" to AttributeValue.N(googleMapsLocation.Lat.toString()),
+            "lng" to AttributeValue.N(googleMapsLocation.Lng.toString())
+        )
+
         val itemValues = mutableMapOf<String, AttributeValue>()
         itemValues["partitionKey"] = AttributeValue.S(email)
         itemValues["SortKey"] = AttributeValue.S("site")
         itemValues["siteAddress"] = AttributeValue.S(siteAddress)
-        itemValues["siteExplanation"] = AttributeValue.S(siteExpliation)
-        itemValues["siteAddressExplanation"] = AttributeValue.S(siteAddressExplination)
-        itemValues["googleMapsLocation"] = AttributeValue.S(googleMapsLocation)
-        itemValues["siteDaysWorkedAndThereUsualStartAndEndTime"] = AttributeValue.S(siteDaysWorkedAndThereUsualStartAndEndTime)
-        itemValues["terrain"] = AttributeValue.S(terrain)
-        itemValues["sitePhoto"] = AttributeValue.S(sitePhoto)
+        //itemValues["siteExplanation"] = AttributeValue.S(siteExpliation)
+        //itemValues["siteAddressExplanation"] = AttributeValue.S(siteAddressExplination)
+        itemValues["googleMapsLocation"] = AttributeValue.M(latlng)
+        //itemValues["siteDaysWorkedAndThereUsualStartAndEndTime"] = AttributeValue.S(siteDaysWorkedAndThereUsualStartAndEndTime)
+        //itemValues["terrain"] = AttributeValue.S(terrain)
+        //itemValues["sitePhoto"] = AttributeValue.S(sitePhoto)
 
         val request = PutItemRequest {
             tableName = "workerAppTable"
@@ -70,7 +77,6 @@ class SupervisorProfileDynamoDBDataSource(
             DynamoDbClient { region = "ap-southeast-2" }.use { db ->
                 db.putItem(request)
             }
-
         } catch (e: Exception) {
 
         }
@@ -78,21 +84,15 @@ class SupervisorProfileDynamoDBDataSource(
 
     override suspend fun putSupervisorPersonalData(
         email: String,
-        supervisor: String,
         firstname: String,
         lastname: String,
-        recordOfAttendance: String,
-        rate: String,
         personalPhoto: String
     ) {
         val itemValues = mutableMapOf<String, AttributeValue>()
         itemValues["partitionKey"] = AttributeValue.S(email)
         itemValues["SortKey"] = AttributeValue.S("personal")
-        itemValues["supervisor"] = AttributeValue.S(supervisor)
         itemValues["firstname"] = AttributeValue.S(firstname)
         itemValues["lastname"] = AttributeValue.S(lastname)
-        itemValues["recordOfAttendance"] = AttributeValue.S(recordOfAttendance)
-        itemValues["rate"] = AttributeValue.S(rate)
         itemValues["personalPhoto"] = AttributeValue.S(personalPhoto)
 
         val request = PutItemRequest {
@@ -180,7 +180,7 @@ class SupervisorProfileDynamoDBDataSource(
         }
     }
 
-    override suspend fun getSupervisorPersonalData(email: String): AwsResultWrapper<Personal> {
+    override suspend fun getSupervisorPersonalData(email: String): AwsResultWrapper<SupervisorProfile> {
         val keyToGet = mutableMapOf<String, AttributeValue>()
         keyToGet["partitionKey"] = AttributeValue.S(email)
         keyToGet["SortKey"] = AttributeValue.S("personal")
@@ -196,19 +196,13 @@ class SupervisorProfileDynamoDBDataSource(
             }
             val item = result.item
             val itemEmail = item?.get("partitionKey")?.asS().toString()
-            val supervisor = item?.get("supervisor")?.asS().toString()
             val firstname = item?.get("firstname")?.asS().toString()
             val lastname = item?.get("lastname")?.asS().toString()
-            val recordOfAttendance = item?.get("recordOfAttendance")?.asS().toString()
-            val rate = item?.get("rate")?.asS().toString()
             val personalPhoto = item?.get("personalPhoto")?.asS().toString()
-            val personal = Personal(
+            val personal = SupervisorProfile(
                 email = itemEmail,
-                supervisor = supervisor,
-                firstname = firstname,
-                lastname = lastname,
-                recordOfAttendance = recordOfAttendance,
-                rate = rate,
+                firstName = firstname,
+                lastName = lastname,
                 personalPhoto = personalPhoto
             )
 

@@ -1,8 +1,7 @@
 package com.example
 
-
 import com.example.awsServices.dynamoDb.Employee.WorkerProfileDynamoDBDataSource
-import com.example.awsServices.dynamoDb.Employer.SupervisorProfileDynamoDBDataSource
+import com.example.awsServices.dynamoDb.employer.SupervisorProfileDynamoDBDataSource
 import io.ktor.server.application.*
 import com.example.plugins.*
 import com.plcoding.security.hashing.SHA256HashingService

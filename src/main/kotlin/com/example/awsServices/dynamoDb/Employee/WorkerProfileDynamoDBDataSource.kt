@@ -4,6 +4,9 @@ import aws.sdk.kotlin.services.dynamodb.DynamoDbClient
 import aws.sdk.kotlin.services.dynamodb.model.*
 import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
 import com.example.Data.models.Auth.AuthSaltPasswordEmail
+import com.example.Data.models.HighestClass
+import com.example.Data.models.DriversLicence
+import com.example.Data.models.TypeOfLicence
 import com.example.Data.models.workerVisualiser.*
 import com.example.Data.wrapperClasses.AwsResultWrapper
 
@@ -17,7 +20,12 @@ class WorkerProfileDynamoDBDataSource(
     // putDatesWorked
     // putWorkerPersonalData
     // putWorkerExperience
-    override suspend fun putWorkerSignupInfo(email: String, password: String, salt: String, isSupervisor: Boolean): Boolean {
+    override suspend fun putWorkerSignupInfo(
+        email: String,
+        password: String,
+        salt: String,
+        isSupervisor: Boolean
+    ): Boolean {
         val itemValues = mutableMapOf<String, AttributeValue>()
 
         itemValues["partitionKey"] = AttributeValue.S(email)
@@ -40,6 +48,33 @@ class WorkerProfileDynamoDBDataSource(
 
         } catch (e: Exception) {
             false
+        }
+    }
+
+    override suspend fun putWorkerDriversLicence(licence: DriversLicence) {
+        val itemValues = mutableMapOf<String, AttributeValue>()
+
+        val licenceMap = mutableMapOf<String, AttributeValue>()
+        licence.licenceMap.map { licenceMap.put(key = it.key, value = AttributeValue.Bool(it.value)) }
+
+        itemValues["partitionKey"] = AttributeValue.S(licence.email)
+        itemValues["SortKey"] = AttributeValue.S("driversLicence")
+        itemValues["typeOfDriversLicence"] = AttributeValue.S(licence.typeOfLicence.name)
+        itemValues["driversLicenceMap"] = AttributeValue.M(licenceMap)
+        itemValues["highestClass"] = AttributeValue.S(licence.highestClass.name)
+
+        val request = PutItemRequest {
+            tableName = "workerAppTable"
+            item = itemValues
+        }
+
+        try {
+            DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+                db.putItem(request)
+            }
+
+        } catch (e: Exception) {
+
         }
     }
 
@@ -168,7 +203,7 @@ class WorkerProfileDynamoDBDataSource(
     ) {
         val itemValues = mutableMapOf<String, AttributeValue>()
         itemValues["partitionKey"] = AttributeValue.S(email)
-        itemValues["SortKey"] = AttributeValue.S("personal")
+        itemValues["SortKey"] = AttributeValue.S("personal#worker")
         itemValues["firstname"] = AttributeValue.S(firstname)
         itemValues["lastname"] = AttributeValue.S(lastname)
         itemValues["rate"] = AttributeValue.N(rate.toString())
@@ -241,7 +276,7 @@ class WorkerProfileDynamoDBDataSource(
             val item = result.item
             val salt = item?.get("salt")?.asS().toString()
             val password = item?.get("password")?.asS().toString()
-            val isSupervisor = item?.get("isSupervisor")?.asBool()?:false
+            val isSupervisor = item?.get("isSupervisor")?.asBool() ?: false
             val authSaltPasswordEmail = AuthSaltPasswordEmail(
                 email = email,
                 password = password,
@@ -250,6 +285,41 @@ class WorkerProfileDynamoDBDataSource(
             )
 
             return AwsResultWrapper.Success(data = authSaltPasswordEmail)
+        } catch (e: Exception) {
+            AwsResultWrapper.Fail()
+        }
+    }
+
+    override suspend fun getWorkerDriversLicence(email: String): AwsResultWrapper<DriversLicence> {
+        val keyToGet = mutableMapOf<String, AttributeValue>()
+        keyToGet["partitionKey"] = AttributeValue.S(email)
+        keyToGet["SortKey"] = AttributeValue.S("driversLicence")
+
+        val request = GetItemRequest {
+            key = keyToGet
+            tableName = "workerAppTable"
+        }
+
+        return try {
+            val result = DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+                db.getItem(request)
+            }
+
+            val item = result.item
+            val itemEmail = item?.get("partitionKey")?.asS().toString()
+            val typeOfLicence = item?.get("typeOfDriversLicence")?.asS().toString()
+            val licenceMap = mutableMapOf<String, Boolean>()
+            item?.get("driversLicenceMap")?.asM()?.map { licenceMap.put(key = it.key, value = (it.value.asBool())) }
+
+            val highestClass = item?.get("highestClass")?.asS().toString()
+            val workerSite = DriversLicence(
+                email = itemEmail,
+                typeOfLicence = TypeOfLicence.valueOf(typeOfLicence),
+                licenceMap = licenceMap,
+                highestClass = HighestClass.valueOf(highestClass)
+            )
+
+            AwsResultWrapper.Success(data = workerSite)
         } catch (e: Exception) {
             AwsResultWrapper.Fail()
         }
@@ -389,10 +459,10 @@ class WorkerProfileDynamoDBDataSource(
         }
     }
 
-    override suspend fun getWorkerPersonalData(email: String): AwsResultWrapper<Personal> {
+    override suspend fun getWorkerPersonalData(email: String): AwsResultWrapper<WorkerProfile> {
         val keyToGet = mutableMapOf<String, AttributeValue>()
         keyToGet["partitionKey"] = AttributeValue.S(email)
-        keyToGet["SortKey"] = AttributeValue.S("personal")
+        keyToGet["SortKey"] = AttributeValue.S("personal#worker")
 
 
         val request = GetItemRequest {
@@ -403,20 +473,18 @@ class WorkerProfileDynamoDBDataSource(
             val result = DynamoDbClient { region = "ap-southeast-2" }.use { db ->
                 db.getItem(request)
             }
+            println(result.toString())
             val item = result.item
             val itemEmail = item?.get("partitionKey")?.asS().toString()
-            val supervisor = item?.get("supervisor")?.asS().toString()
+            println(itemEmail)
             val firstname = item?.get("firstname")?.asS().toString()
             val lastname = item?.get("lastname")?.asS().toString()
-            val recordOfAttendance = item?.get("recordOfAttendance")?.asS().toString()
-            val rate = item?.get("rate")?.asS().toString()
+            val rate = item?.get("rate")?.asN()?.toInt() ?: 0
             val personalPhoto = item?.get("personalPhoto")?.asS().toString()
-            val personal = Personal(
+            val personal = WorkerProfile(
                 email = itemEmail,
-                supervisor = supervisor,
-                firstname = firstname,
-                lastname = lastname,
-                recordOfAttendance = recordOfAttendance,
+                firstName = firstname,
+                lastName = lastname,
                 rate = rate,
                 personalPhoto = personalPhoto
             )
@@ -465,6 +533,76 @@ class WorkerProfileDynamoDBDataSource(
         } catch (e: Exception) {
             AwsResultWrapper.Fail()
 
+        }
+    }
+
+    override suspend fun getWorkers(): List<WorkerProfile> {
+
+        val attrValues = mutableMapOf<String, AttributeValue>()
+
+        attrValues[":SortKey"] = AttributeValue.S("personal#worker")
+
+        val request = QueryRequest {
+            limit = 5
+            tableName = "workerAppTable"
+            indexName = "reverseLookup"
+            keyConditionExpression = "SortKey = :SortKey"// AND partitionKey = :partitionKey"
+            this.expressionAttributeValues = attrValues
+        }
+
+        val listOfWorkers = mutableListOf<WorkerProfile>()
+
+        DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+            val items = db.query(request).items
+            if (items != null) {
+                for (worker in items) {
+                    listOfWorkers.add(
+                        WorkerProfile(
+                            email = worker["partitionKey"]?.asS() ?: "",
+                            firstName = worker["firstname"]?.asS() ?: "",
+                            lastName = worker["lastname"]?.asS() ?: "",
+                            personalPhoto = worker["personalPhoto"]?.asS() ?: "",
+                            rate = worker["rate"]?.asN()?.toInt() ?: 0,
+                        )
+                    )
+                }
+            }
+        }
+        return listOfWorkers
+    }
+
+    override suspend fun deleteAccount(email: String) {
+
+        val attrValues = mutableMapOf<String, AttributeValue>()
+        attrValues[":partitionKey"] = AttributeValue.S(email)
+
+        val queryRequest = QueryRequest {
+            tableName = "workerAppTable"
+            keyConditionExpression = "partitionKey = :partitionKey"
+            this.expressionAttributeValues = attrValues
+        }
+
+        DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+            val items = db.query(queryRequest).items
+            if (items != null) {
+                for (item in items) {
+                    try {
+                        val keyToGet = mutableMapOf<String, AttributeValue>()
+                        keyToGet["partitionKey"] = AttributeValue.S(email)
+                        keyToGet["SortKey"] = item["SortKey"]?.let { AttributeValue.S(it.asS()) }!!
+
+                        val request = DeleteItemRequest {
+                            key = keyToGet
+                            tableName = "workerAppTable"
+                        }
+
+                        DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+                            db.deleteItem(request)
+                        }
+                    } catch (e: Exception) {
+                    }
+                }
+            }
         }
     }
 }

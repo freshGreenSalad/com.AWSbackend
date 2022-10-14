@@ -3,7 +3,8 @@ package com.example.Data.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Licence(
+data class DriversLicence(
+    val email:String,
     val typeOfLicence: TypeOfLicence,
     val licenceMap: Map<String,Boolean>,
     val highestClass: HighestClass

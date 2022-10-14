@@ -4,6 +4,7 @@ import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
 import com.example.Data.models.Auth.AuthRequest
 import com.example.Data.models.Auth.AuthRequestWithIsSupervisor
 import com.example.Data.models.Auth.AuthResponse
+import com.example.Data.models.DriversLicence
 import com.example.Data.models.workerVisualiser.*
 import com.plcoding.security.hashing.HashingService
 import com.plcoding.security.hashing.SaltedHash
@@ -146,6 +147,21 @@ fun Route.putDatesWorked(
     }
 }
 
+fun Route.putWorkerDriversLicence(
+    WorkerDataSource: WorkerProfileDynamoDBInterface
+) {
+    post("putWorkerDriversLicence") {
+        val request = call.receiveOrNull<DriversLicence>() ?: kotlin.run {
+            call.respond(HttpStatusCode.BadRequest)
+            return@post
+        }
+        WorkerDataSource.putWorkerDriversLicence(
+            licence = request
+        )
+        call.respond(HttpStatusCode.OK)
+    }
+}
+
 fun Route.putWorkerPersonalData(
     WorkerDataSource: WorkerProfileDynamoDBInterface
 ) {
@@ -212,7 +228,7 @@ fun Route.getWorkerSignupAuth(
         val password: String
         val salt: String
         val email: String
-        val isSupervisor = profile.data?.isSupervisor?:false
+        val isSupervisor = profile.data?.isSupervisor ?: false
 
         if (saltBool == null || passwordBool == null || emailBool == null) {
             call.respond(HttpStatusCode.Conflict, "account does not exist")
@@ -332,6 +348,34 @@ fun Route.getWorkerSpecialLicence(
     }
 }
 
+fun Route.getWorkerDriversLicence(
+    WorkerDataSource: WorkerProfileDynamoDBInterface
+) {
+    authenticate {
+        post("getWorkerDriversLicence") {
+
+            val authEmail = call.receiveOrNull<String>() ?: kotlin.run {
+                call.respond(HttpStatusCode.BadRequest)
+                return@post
+            }
+            val response = WorkerDataSource.getWorkerDriversLicence(email = authEmail)
+
+            val driversLicence = response.data?.let { request ->
+                DriversLicence(
+                    email = request.email,
+                    typeOfLicence = request.typeOfLicence,
+                    licenceMap = request.licenceMap,
+                    highestClass = request.highestClass
+                )
+            }!!
+
+            call.respond(driversLicence)
+
+
+        }
+    }
+}
+
 fun Route.getDatesWorked(
     WorkerDataSource: WorkerProfileDynamoDBInterface
 ) {
@@ -431,57 +475,26 @@ fun Route.getWorkerPersonalData(
     WorkerDataSource: WorkerProfileDynamoDBInterface
 ) {
     authenticate {
-        get("getWorkerPersonalData") {
-            val authEmail = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asString()
-            val response = WorkerDataSource.getWorkerPersonalData(email = authEmail)
+        post("getWorkerPersonalData") {
 
-            val emailBool = response.data?.email
-            val supervisorBool = response.data?.supervisor
-            val firstnameBool = response.data?.firstname
-            val lastnameBool = response.data?.lastname
-            val recordOfAttendanceBool = response.data?.recordOfAttendance
-            val rateBool = response.data?.rate
-            val personalPhotoBool = response.data?.personalPhoto
-
-            val email: String
-            val supervisor: String
-            val firstname: String
-            val lastname: String
-            val recordOfAttendance: String
-            val rate: String
-            val personalPhoto: String
-
-            if (
-                emailBool == null ||
-                supervisorBool == null ||
-                firstnameBool == null ||
-                lastnameBool == null ||
-                recordOfAttendanceBool == null ||
-                rateBool == null ||
-                personalPhotoBool == null
-            ) {
-                call.respond(HttpStatusCode.Conflict, "Incorrect username or password")
-                return@get
-            } else {
-                email = response.data.email
-                supervisor = response.data.supervisor
-                firstname = response.data.firstname
-                lastname = response.data.lastname
-                recordOfAttendance = response.data.recordOfAttendance
-                rate = response.data.rate
-                personalPhoto = response.data.personalPhoto
+            val authEmail = kotlin.runCatching { call.receiveNullable<Email>() }.getOrNull() ?: kotlin.run {
+                call.respond(HttpStatusCode.BadRequest)
+                return@post
             }
 
-            val personal = Personal(
-                email = email,
-                supervisor = supervisor,
-                firstname = firstname,
-                lastname = lastname,
-                recordOfAttendance = recordOfAttendance,
-                rate = rate,
-                personalPhoto = personalPhoto
-            )
-            call.respond(personal)
+            val response = WorkerDataSource.getWorkerPersonalData(email = authEmail.email)
+
+            val driversLicence = response.data?.let { request ->
+                WorkerProfile(
+                    email = request.email,
+                    firstName = request.firstName,
+                    lastName = request.lastName,
+                    rate = request.rate,
+                    personalPhoto = request.personalPhoto
+                )
+            }!!
+
+            call.respond(driversLicence)
         }
     }
 }
@@ -494,6 +507,28 @@ fun Route.getWorkerExperience(
             val authEmail = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asString()
             val response = WorkerDataSource.getWorkerExperience(email = authEmail).data?.toList() ?: emptyList()
             call.respond(response)
+        }
+    }
+}
+
+fun Route.getWorkerS(
+    WorkerDataSource: WorkerProfileDynamoDBInterface
+) {
+    get("getListOfWorkerAccounts") {
+        val response = WorkerDataSource.getWorkers()
+        call.respond(response)
+    }
+}
+
+fun Route.deleteAccount(
+    WorkerDataSource: WorkerProfileDynamoDBInterface
+) {
+    authenticate {
+        post("deleteAccount") {
+            val authEmail = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asString()
+            println("delete this account $authEmail" )
+            WorkerDataSource.deleteAccount(authEmail)
+            call.respond(HttpStatusCode.OK)
         }
     }
 }

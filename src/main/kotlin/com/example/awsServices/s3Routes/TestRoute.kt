@@ -76,20 +76,22 @@ fun Route.putWorkerImage() {
 }
 
 fun Route.testPresign() {
-    put("s3PresignPut") {
+    authenticate {
+        put("s3PresignPut") {
 
-        //val authEmail = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asString()
+            val authEmail = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asString()
 
-        val request = call.receiveOrNull<String>() ?: kotlin.run {
-            call.respond(HttpStatusCode.BadRequest)
-            return@put
+            val request = call.receiveOrNull<String>() ?: kotlin.run {
+                call.respond(HttpStatusCode.BadRequest)
+                return@put
+            }
+
+            val uri = PresignPutRequest(
+                email = authEmail,
+                fileNaming = request.toString()
+            )
+
+            call.respond(HttpStatusCode.OK, uri.toString())
         }
-
-        val uri = PresignPutRequest(
-            email = "email",
-            fileNaming = request.toString()
-        )
-
-        call.respond(HttpStatusCode.OK, uri.toString())
     }
 }
