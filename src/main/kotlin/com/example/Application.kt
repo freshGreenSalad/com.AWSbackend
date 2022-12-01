@@ -1,6 +1,7 @@
 package com.example
 
 import com.example.awsServices.dynamoDb.Employee.WorkerProfileDynamoDBDataSource
+import com.example.awsServices.dynamoDb.LoginSignup.SignupLoginDataSource
 import com.example.awsServices.dynamoDb.employer.SupervisorProfileDynamoDBDataSource
 import io.ktor.server.application.*
 import com.example.plugins.*
@@ -15,6 +16,7 @@ fun main(args: Array<String>): Unit =
 fun Application.module() {
     val supervisorProfileDataSource = SupervisorProfileDynamoDBDataSource()
     val workerProfileDynamoDBData = WorkerProfileDynamoDBDataSource()
+    val signupDataSource = SignupLoginDataSource()
     val tokenService = JwtTokenService()
     val tokenConfig = TokenConfig(
         issuer = environment.config.property("jwt.issuer").getString(),
@@ -30,7 +32,8 @@ fun Application.module() {
         SupervisorProfileDataSource = supervisorProfileDataSource,
         hashingService = hashingService,
         tokenService = tokenService,
-        tokenConfig = tokenConfig
+        tokenConfig = tokenConfig,
+        SignupDataSource = signupDataSource
     )
     configureSecurity(tokenConfig)
 }

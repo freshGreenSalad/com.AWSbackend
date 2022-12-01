@@ -4,6 +4,7 @@ import com.example.*
 import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
 import com.example.Data.models.SupervisorProfileDynamoDBInterface
 import com.example.awsServices.dynamoDb.*
+import com.example.awsServices.dynamoDb.LoginSignup.*
 import com.example.awsServices.dynamoDb.employer.*
 import com.example.awsServices.ses.testSendEmail
 import com.plcoding.security.hashing.HashingService
@@ -17,7 +18,8 @@ fun Application.configureRouting(
     SupervisorProfileDataSource: SupervisorProfileDynamoDBInterface,
     hashingService: HashingService,
     tokenService: TokenService,
-    tokenConfig: TokenConfig
+    tokenConfig: TokenConfig,
+    SignupDataSource: signupLoginInterface
 ) {
     routing {
         //test presign
@@ -34,56 +36,19 @@ fun Application.configureRouting(
         //test send emil
         testSendEmail()
 
-        //test gsi
+        workerSiteInfo(WorkerProfileDataSource)
+        WorkerSpecialLicence(WorkerProfileDataSource)
+        DatesWorked(WorkerProfileDataSource)
+        WorkerPersonalData(WorkerProfileDataSource)
+        WorkerExperience(WorkerProfileDataSource)
+        WorkerDriversLicence(WorkerProfileDataSource)
+
+        SupervisorSiteInfo(SupervisorProfileDataSource)
+        SupervisorPersonalData(SupervisorProfileDataSource)
         getWorkerS(WorkerProfileDataSource)
 
-        //aws visualiser route functions for workers
-        // putWorkerSignupInfo
-        // putWorkerSiteInfo
-        // putWorkerSpecialLicence
-        // putDatesWorked
-        // putWorkerPersonalData
-        // putWorkerExperience
-        putWorkerSignupInfo(WorkerProfileDataSource, hashingService,  tokenService,  tokenConfig)
-        putWorkerSiteInfo(WorkerProfileDataSource)
-        putWorkerSpecialLicence(WorkerProfileDataSource)
-        putDatesWorked(WorkerProfileDataSource)
-        putWorkerPersonalData(WorkerProfileDataSource)
-        putWorkerExperience(WorkerProfileDataSource)
-        putWorkerDriversLicence(WorkerProfileDataSource)
-
-        //aws visualiser route functions for workers
-        // getWorkerSignupInfo
-        // getWorkerSiteInfo
-        // getWorkerSpecialLicence
-        // getDatesWorked
-        // getWorkerPersonalData
-        // getWorkerExperience
-        getWorkerSignupAuth(WorkerProfileDataSource, hashingService, tokenService,   tokenConfig)
-        getWorkerSiteInfo(WorkerProfileDataSource)
-        getWorkerSpecialLicence(WorkerProfileDataSource)
-        getDatesWorked(WorkerProfileDataSource)
-        getWorkerPersonalData(WorkerProfileDataSource)
-        getWorkerExperience(WorkerProfileDataSource)
-        getWorkerDriversLicence(WorkerProfileDataSource)
-
-        //delete worker functions
+        LoginInfo(SignupDataSource, hashingService, tokenService,   tokenConfig)
+        SignupInfo(SignupDataSource,  hashingService, tokenService,  tokenConfig)
         deleteAccount(WorkerProfileDataSource)
-
-        //aws visualiser route functions for Supervisors
-        // putSupervisorSignupInfo
-        // putSupervisorSiteInfo
-        // putSupervisorPersonalData
-        putSupervisorSignupInfo(SupervisorProfileDataSource,  hashingService, tokenService,  tokenConfig)
-        putSupervisorSiteInfo(SupervisorProfileDataSource)
-        putSupervisorPersonalData(SupervisorProfileDataSource)
-
-        //aws visualiser route functions for Supervisors
-        // getSupervisorSignupInfo
-        // getSupervisorSiteInfo
-        // getSupervisorPersonalData
-        getSupervisorSignupInfo(SupervisorProfileDataSource,  hashingService, tokenService,  tokenConfig)
-        getSupervisorSiteInfo(SupervisorProfileDataSource)
-        getSupervisorPersonalData(SupervisorProfileDataSource)
     }
 }
