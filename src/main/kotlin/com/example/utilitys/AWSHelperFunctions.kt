@@ -33,12 +33,14 @@ class AWSHelperFunctions {
             db.query(request)
         }.items
 
-    suspend fun GetItem(request: GetItemRequest):Map<String, AttributeValue>? {
-        return DynamoDbClient { region = "ap-southeast-2" }.use { db ->
-            db.getItem(request)
-        }.item
-    }
-    //
+    suspend fun GetItem(request: GetItemRequest)=
+        try {
+            DynamoDbClient { region = "ap-southeast-2" }.use { db ->
+                db.getItem(request)
+            }.item
+        }catch(e:Exception){
+            mapOf<String, AttributeValue>("fail" to AttributeValue.S("sdfg"))
+        }
 
     fun KeyToGet(email: String, SortKeyValue:String): MutableMap<String, AttributeValue> {
         val keyToGet = mutableMapOf<String, AttributeValue>()

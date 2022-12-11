@@ -6,6 +6,8 @@ import com.example.Data.models.SupervisorProfileDynamoDBInterface
 import com.example.awsServices.dynamoDb.*
 import com.example.awsServices.dynamoDb.LoginSignup.*
 import com.example.awsServices.dynamoDb.employer.*
+import com.example.awsServices.dynamoDb.hire.HireWorker
+import com.example.awsServices.dynamoDb.hire.interfaces.HireWorkerDataSourceInterface
 import com.example.awsServices.ses.testSendEmail
 import com.plcoding.security.hashing.HashingService
 import com.plcoding.security.token.TokenConfig
@@ -19,7 +21,8 @@ fun Application.configureRouting(
     hashingService: HashingService,
     tokenService: TokenService,
     tokenConfig: TokenConfig,
-    SignupDataSource: signupLoginInterface
+    SignupDataSource: signupLoginInterface,
+    hireWorkerDataSourceInterface: HireWorkerDataSourceInterface
 ) {
     routing {
         //test presign
@@ -50,5 +53,8 @@ fun Application.configureRouting(
         LoginInfo(SignupDataSource, hashingService, tokenService,   tokenConfig)
         SignupInfo(SignupDataSource,  hashingService, tokenService,  tokenConfig)
         deleteAccount(WorkerProfileDataSource)
+        HireWorker(hireWorkerDataSourceInterface)
+
+
     }
 }

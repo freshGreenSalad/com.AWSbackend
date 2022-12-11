@@ -24,11 +24,11 @@ fun Route.workerSiteInfo(
     }
     authenticate {
         get("WorkerSiteInfo") {
-            val email = call.receiveOrNull<String>() ?: kotlin.run {
+            val email = call.receiveOrNull<Email>() ?: kotlin.run {
                 call.respond(HttpStatusCode.BadRequest)
                 return@get
             }
-            val response = WorkerDataSource.getWorkerSiteInfo(email).data!!
+            val response = WorkerDataSource.getWorkerSiteInfo(email.email).data!!
             call.respond(response)
         }
     }
@@ -46,11 +46,11 @@ fun Route.WorkerSpecialLicence(
     }
     authenticate {
         get("WorkerSpecialLicence") {
-            val email = call.receiveOrNull<String>() ?: kotlin.run {
+            val email = call.receiveOrNull<Email>() ?: kotlin.run {
                 call.respond(HttpStatusCode.BadRequest)
                 return@get
             }
-            val response = WorkerDataSource.getWorkerSpecialLicence(email).data?.toList() ?: emptyList()
+            val response = WorkerDataSource.getWorkerSpecialLicence(email.email).data?.toList() ?: emptyList()
             call.respond(response)
         }
     }
@@ -69,11 +69,11 @@ fun Route.DatesWorked(
     }
     authenticate {
         get("DatesWorked") {
-            val email = call.receiveOrNull<String>() ?: kotlin.run {
+            val email = call.receiveOrNull<Email>() ?: kotlin.run {
                 call.respond(HttpStatusCode.BadRequest)
                 return@get
             }
-            val response = WorkerDataSource.getDatesWorked(email = email).data!!
+            val response = WorkerDataSource.getDatesWorked(email = email.email).data!!
             call.respond(response)
         }
     }
@@ -92,11 +92,11 @@ fun Route.WorkerDriversLicence(
     }
     authenticate {
         get("WorkerDriversLicence") {
-            val email = call.receiveOrNull<String>() ?: kotlin.run {
+            val email = call.receiveOrNull<Email>() ?: kotlin.run {
                 call.respond(HttpStatusCode.BadRequest)
                 return@get
             }
-            val response = WorkerDataSource.getWorkerDriversLicence(email).data!!
+            val response = WorkerDataSource.getWorkerDriversLicence(email.email).data!!
             call.respond(response)
         }
     }
@@ -115,11 +115,11 @@ fun Route.WorkerExperience(
     }
     authenticate {
         get("WorkerExperience") {
-            val email = call.receiveOrNull<String>() ?: kotlin.run {
+            val email = call.receiveOrNull<Email>() ?: kotlin.run {
                 call.respond(HttpStatusCode.BadRequest)
                 return@get
             }
-            val response = WorkerDataSource.getWorkerExperience(email).data?.toList() ?: emptyList()
+            val response = WorkerDataSource.getWorkerExperience(email.email).data?.toList() ?: emptyList()
             call.respond(response)
         }
     }
@@ -138,11 +138,12 @@ fun Route.WorkerPersonalData(
     }
     authenticate {
         get("WorkerPersonalData") {
-            val email = call.receiveOrNull<String>() ?: kotlin.run {
+            val email = call.receiveOrNull<Email>() ?: kotlin.run {
                 call.respond(HttpStatusCode.BadRequest)
                 return@get
             }
-            val response = WorkerDataSource.getWorkerPersonalData(email).data!!
+            println(email)
+            val response = WorkerDataSource.getWorkerPersonalData(email.email).data!!
             call.respond(response)
         }
     }

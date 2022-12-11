@@ -34,8 +34,6 @@ class WorkerProfileDynamoDBDataSource(
         AWSHelperFunctions().tryCatchPutObjectInDynamoDb(request)
     }
 
-    //get functions
-
     override suspend fun getWorkerSignupAuth(email: String): AwsResultWrapper<AuthSaltPasswordEmail> {
         return try {
             val keyToGet = AWSHelperFunctions().KeyToGet(email,"signIn")
@@ -81,13 +79,14 @@ class WorkerProfileDynamoDBDataSource(
     }
 
     override suspend fun getWorkerPersonalData(email: String): AwsResultWrapper<WorkerProfile> {
+        val keyToGet = AWSHelperFunctions().KeyToGet(email,"personal#worker")
+        val request = AWSHelperFunctions().BuildGetItemRequest(keyToGet)
+        val item = AWSHelperFunctions().GetItem(request)!!
         return try {
-            val keyToGet = AWSHelperFunctions().KeyToGet(email,"personal#worker")
-            val request = AWSHelperFunctions().BuildGetItemRequest(keyToGet)
-            val personal = WorkerDynamoObjectConverters().dynamoResultToPersonalData(request)
+            val personal = WorkerDynamoObjectConverters().dynamoMapToWorkerProfile(item)
             return AwsResultWrapper.Success(data = personal)
         } catch (e: Exception) {
-            AwsResultWrapper.Fail()
+            AwsResultWrapper.Success(WorkerProfile("","","","",56))
         }
     }
 

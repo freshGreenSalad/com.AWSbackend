@@ -6,7 +6,9 @@ import com.example.Data.models.Auth.AuthSaltPasswordEmail
 import com.example.Data.models.DriversLicence
 import com.example.Data.models.HighestClass
 import com.example.Data.models.TypeOfLicence
+import com.example.Data.models.general.Location
 import com.example.Data.models.supervisorVisualiser.SupervisorProfile
+import com.example.Data.models.supervisorVisualiser.SupervisorSite
 import com.example.Data.models.workerVisualiser.*
 
 class WorkerDynamoObjectConverters {
@@ -25,7 +27,6 @@ class WorkerDynamoObjectConverters {
             sitePhoto = result["sitePhoto"]?.asS().toString()
         )
     }
-
     suspend fun dynamoResultToDriverslicence(request: GetItemRequest): DriversLicence {
         val result = AWSHelperFunctions().GetItem(request)!!
         val licenceMap = mutableMapOf<String, Boolean>()
@@ -37,11 +38,7 @@ class WorkerDynamoObjectConverters {
             highestClass = HighestClass.valueOf(result["highestClass"]?.asS().toString())
         )
     }
-
-    suspend fun dynamoResultToDriverslicence(
-        request: GetItemRequest,
-        email: String
-    ): AuthSaltPasswordEmail {
+    suspend fun dynamoResultToDriverslicence(request: GetItemRequest, email: String): AuthSaltPasswordEmail {
         val result = AWSHelperFunctions().GetItem(request)!!
         return AuthSaltPasswordEmail(
             email = email,
@@ -50,7 +47,6 @@ class WorkerDynamoObjectConverters {
             isSupervisor = result["isSupervisor"]?.asBool() ?: false
         )
     }
-
     suspend fun dynamoResultToDatesWorked(request: GetItemRequest): DatesWorked {
         val result = AWSHelperFunctions().GetItem(request)!!
         return DatesWorked(
@@ -70,12 +66,18 @@ class WorkerDynamoObjectConverters {
             december = result["december"]?.asS().toString()
         )
     }
-
-    suspend fun dynamoResultToPersonalData(request: GetItemRequest): WorkerProfile {
-        val result = AWSHelperFunctions().GetItem(request)!!
-        return dynamoMapToWorkerProfile(result)
+    fun dynamoMapToWorkerProfile(item: Map<String, AttributeValue>):WorkerProfile {
+        return try {
+        return WorkerProfile(
+            email = item["partitionKey"]?.asS() ?: "",
+            firstName = item["firstname"]?.asS() ?: "",
+            lastName = item["lastname"]?.asS() ?: "",
+            personalPhoto = item["personalPhoto"]?.asS() ?: "",
+            rate = item["rate"]?.asN()?.toInt() ?: 0,
+        )}catch(e:Exception){
+            WorkerProfile("","","","",2345)
+        }
     }
-
     fun dynamoResultToExperience(item: Map<String, AttributeValue>): Experience {
         return Experience(
             email = item["partitionKey"]?.asS().toString(),
@@ -84,28 +86,15 @@ class WorkerDynamoObjectConverters {
             previousRatingsFromSupervisors = item["previousRatingsFromSupervisors"]?.asS().toString()
         )
     }
-
     fun dynamoResultToSpecialLicence(item: Map<String, AttributeValue>): SpecialLicence {
-        val specialLicence = SpecialLicence(
+        return SpecialLicence(
             email = item["partitionKey"]?.asS().toString(),
             licenceType = item["licenceType"]?.asS().toString(),
             issueDate = item["issueDate"]?.asS().toString(),
             expiryDate = item["expiryDate"]?.asS().toString(),
             licencePhoto = item["licencePhoto"]?.asS().toString()
         )
-        return specialLicence
     }
-
-    fun dynamoMapToWorkerProfile(worker: Map<String, AttributeValue>):WorkerProfile {
-        return WorkerProfile(
-            email = worker["partitionKey"]?.asS() ?: "",
-            firstName = worker["firstname"]?.asS() ?: "",
-            lastName = worker["lastname"]?.asS() ?: "",
-            personalPhoto = worker["personalPhoto"]?.asS() ?: "",
-            rate = worker["rate"]?.asN()?.toInt() ?: 0,
-        )
-    }
-
     suspend fun dynamoResultTosupervisorProfile(request: GetItemRequest): SupervisorProfile {
         val result = AWSHelperFunctions().GetItem(request)!!
         val personal = SupervisorProfile(
@@ -115,5 +104,14 @@ class WorkerDynamoObjectConverters {
             personalPhoto = result["personalPhoto"]?.asS().toString()
         )
         return personal
+    }
+    suspend fun dynamoResultToSupervisorSite(request: GetItemRequest): SupervisorSite {
+        val result = AWSHelperFunctions().GetItem(request)!!
+        val latlng = result["googleMapsLocation"]?.asM()!!
+        return SupervisorSite(
+            email = result["partitionKey"]?.asS().toString(),
+            address = result["siteAddress"]?.asS().toString(),
+            location = Location(Lat = latlng["lat"]?.asN()!!.toDouble(), Lng = latlng["lng"]?.asN()!!.toDouble() )
+        )
     }
 }

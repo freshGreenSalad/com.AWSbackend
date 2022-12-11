@@ -31,6 +31,7 @@ fun Route.LoginInfo(
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
+        println(request.email)
         val profile = signup.login(request.email).data!!
         val isValidPassword = CheckGivenPasswordMatchsStoredPassword(hashingService, request, profile)
         if (!isValidPassword) {

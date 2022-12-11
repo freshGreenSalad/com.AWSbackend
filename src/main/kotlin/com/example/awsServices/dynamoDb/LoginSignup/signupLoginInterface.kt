@@ -7,6 +7,5 @@ import com.plcoding.security.hashing.SaltedHash
 
 interface signupLoginInterface {
     suspend fun login(email: String): AwsResultWrapper<AuthSaltPasswordEmail>
-
     suspend fun signup(Authrequest: AuthRequestWithIsSupervisor, saltedHash: SaltedHash): Boolean
 }

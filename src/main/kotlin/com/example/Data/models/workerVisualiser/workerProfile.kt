@@ -1,6 +1,7 @@
 package com.example.Data.models.workerVisualiser
 
 import kotlinx.serialization.Serializable
+
 @Serializable
 data class WorkerProfile(
     val email: String,
@@ -10,3 +11,10 @@ data class WorkerProfile(
     val rate: Int
 )
 
+val failedWorkerProfile = WorkerProfile(
+    email = "failEmail",
+    firstName = "failLastname",
+    lastName = "asdf",
+    personalPhoto = "as",
+    rate = 45,
+)

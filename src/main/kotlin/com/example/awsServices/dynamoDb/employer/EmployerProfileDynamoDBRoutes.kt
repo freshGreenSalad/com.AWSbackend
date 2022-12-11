@@ -1,17 +1,13 @@
 package com.example.awsServices.dynamoDb.employer
 
 import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
-import com.example.Data.models.Auth.AuthRequestWithIsSupervisor
 import com.example.Data.models.SupervisorProfileDynamoDBInterface
 import com.example.Data.models.supervisorVisualiser.SupervisorProfile
 import com.example.Data.models.supervisorVisualiser.SupervisorSite
-import com.plcoding.security.token.TokenClaim
-import com.plcoding.security.token.TokenConfig
-import com.plcoding.security.token.TokenService
+import com.example.Data.models.workerVisualiser.Email
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -30,8 +26,11 @@ fun Route.SupervisorSiteInfo(
 
     authenticate {
         get("SupervisorSiteInfo") {
-            val authEmail = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asString()
-            val response = SupervisorDataSource.getSupervisorSiteInfo(email = authEmail).data!!
+            val email = call.receiveOrNull<Email>() ?: kotlin.run {
+                call.respond(HttpStatusCode.BadRequest)
+                return@get
+            }
+            val response = SupervisorDataSource.getSupervisorSiteInfo(email.email).data!!
             call.respond(response)
         }
     }
@@ -50,8 +49,11 @@ fun Route.SupervisorPersonalData(
     }
     authenticate {
         get("SupervisorPersonalData") {
-            val authEmail = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asString()
-            val response = SupervisorDataSource.getSupervisorPersonalData(email = authEmail).data!!
+            val email = call.receiveOrNull<Email>() ?: kotlin.run {
+                call.respond(HttpStatusCode.BadRequest)
+                return@get
+            }
+            val response = SupervisorDataSource.getSupervisorPersonalData(email.email).data!!
             val personal = SupervisorProfile(
                 email = response.email,
                 firstName = response.firstName,
