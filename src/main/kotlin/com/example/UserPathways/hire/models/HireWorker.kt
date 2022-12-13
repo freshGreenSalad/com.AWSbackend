@@ -1,0 +1,17 @@
+package com.example.awsServices.UserPathways.hire
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class HireWorker(
+    val supervisorEmail: String,
+    val WorkerEmail:String,
+    val Date:WorkerDate
+)
+
+@Serializable
+data class WorkerDate(
+    val day:Int,
+    val month:Int,
+    val year:Int
+)

@@ -1,9 +1,10 @@
 package com.example
 
-import com.example.awsServices.dynamoDb.Employee.WorkerProfileDynamoDBDataSource
-import com.example.awsServices.dynamoDb.LoginSignup.SignupLoginDataSource
-import com.example.awsServices.dynamoDb.employer.SupervisorProfileDynamoDBDataSource
-import com.example.awsServices.dynamoDb.hire.HireWorkerDataSource
+import com.example.UserPathways.Employee.WorkerProfileDynamoDBDataSource
+import com.example.UserPathways.LoginSignup.SignupLoginDataSource
+import com.example.UserPathways.Search.SearchDataSource
+import com.example.UserPathways.employer.SupervisorProfileDynamoDBDataSource
+import com.example.UserPathways.hire.HireWorkerDataSource
 import io.ktor.server.application.*
 import com.example.plugins.*
 import com.plcoding.security.hashing.SHA256HashingService
@@ -15,6 +16,7 @@ fun main(args: Array<String>): Unit =
 
 @Suppress("unused") // application.conf references the main function. This annotation prevents the IDE from marking it as unused.
 fun Application.module() {
+    val searchDataSource = SearchDataSource()
     val hireWorkerDataSourceInterface = HireWorkerDataSource()
     val supervisorProfileDataSource = SupervisorProfileDynamoDBDataSource()
     val workerProfileDynamoDBData = WorkerProfileDynamoDBDataSource()
@@ -37,7 +39,8 @@ fun Application.module() {
         tokenService = tokenService,
         tokenConfig = tokenConfig,
         SignupDataSource = signupDataSource,
-        hireWorkerDataSourceInterface = hireWorkerDataSourceInterface
+        hireWorkerDataSource = hireWorkerDataSourceInterface,
+        searchWorkerDataSource = searchDataSource
     )
     configureSecurity(tokenConfig)
 }

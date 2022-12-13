@@ -5,7 +5,7 @@ import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
 import aws.sdk.kotlin.services.dynamodb.model.GetItemRequest
 import aws.sdk.kotlin.services.dynamodb.model.PutItemRequest
 import aws.sdk.kotlin.services.dynamodb.model.QueryRequest
-import com.example.Data.models.workerVisualiser.SpecialLicence
+import com.example.UserPathways.Employee.workerVisualiser.SpecialLicence
 
 class AWSHelperFunctions {
 

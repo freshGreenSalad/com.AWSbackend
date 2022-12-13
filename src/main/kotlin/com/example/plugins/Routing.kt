@@ -1,14 +1,21 @@
 package com.example.plugins
 
 import com.example.*
-import com.example.Data.RoutingInterfaces.WorkerProfileDynamoDBInterface
-import com.example.Data.models.SupervisorProfileDynamoDBInterface
-import com.example.awsServices.dynamoDb.*
-import com.example.awsServices.dynamoDb.LoginSignup.*
-import com.example.awsServices.dynamoDb.employer.*
-import com.example.awsServices.dynamoDb.hire.HireWorker
-import com.example.awsServices.dynamoDb.hire.interfaces.HireWorkerDataSourceInterface
-import com.example.awsServices.ses.testSendEmail
+import com.example.UserPathways.Employee.WorkerProfileDynamoDBInterface
+import com.example.UserPathways.LoginSignup.LoginInfo
+import com.example.UserPathways.LoginSignup.SignupInfo
+import com.example.UserPathways.LoginSignup.deleteAccount
+import com.example.UserPathways.LoginSignup.signupLoginInterface
+import com.example.UserPathways.employer.SupervisorProfileDynamoDBInterface
+import com.example.awsServices.UserPathways.*
+import com.example.UserPathways.Search.SearchWorkerInterface
+import com.example.UserPathways.Search.SearchWorkers
+import com.example.UserPathways.employer.SupervisorPersonalData
+import com.example.UserPathways.employer.SupervisorSiteInfo
+import com.example.UserPathways.employer.getWorkerS
+import com.example.UserPathways.hire.HireWorker
+import com.example.UserPathways.hire.interfaces.HireWorkerDataSourceInterface
+import com.example.UserPathways.ses.testSendEmail
 import com.plcoding.security.hashing.HashingService
 import com.plcoding.security.token.TokenConfig
 import com.plcoding.security.token.TokenService
@@ -22,21 +29,12 @@ fun Application.configureRouting(
     tokenService: TokenService,
     tokenConfig: TokenConfig,
     SignupDataSource: signupLoginInterface,
-    hireWorkerDataSourceInterface: HireWorkerDataSourceInterface
+    hireWorkerDataSource: HireWorkerDataSourceInterface,
+    searchWorkerDataSource: SearchWorkerInterface
 ) {
     routing {
-        //test presign
-        testPresign()
-        //puts the initial five profiles into the cloud
-        puts3()
 
-        //gets the initial data in the cloud with the key passed in the url
-        gets3()
-
-        //used this to upload the test images to the workerImage folder on s3
-        putWorkerImage()
-
-        //test send emil
+        presignS3StorageRequest()
         testSendEmail()
 
         workerSiteInfo(WorkerProfileDataSource)
@@ -53,8 +51,8 @@ fun Application.configureRouting(
         LoginInfo(SignupDataSource, hashingService, tokenService,   tokenConfig)
         SignupInfo(SignupDataSource,  hashingService, tokenService,  tokenConfig)
         deleteAccount(WorkerProfileDataSource)
-        HireWorker(hireWorkerDataSourceInterface)
+        HireWorker(hireWorkerDataSource)
 
-
+        SearchWorkers(searchWorkerDataSource)
     }
 }

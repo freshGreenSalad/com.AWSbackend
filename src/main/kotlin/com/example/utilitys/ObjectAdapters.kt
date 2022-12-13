@@ -1,13 +1,12 @@
 package com.example.utilitys
 
 import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
-import com.example.Data.models.Auth.AuthRequest
-import com.example.Data.models.Auth.AuthRequestWithIsSupervisor
+import com.example.UserPathways.LoginSignup.Auth.EmailPasswordIsSupervisor
 import com.example.Data.models.DriversLicence
-import com.example.Data.models.general.Location
-import com.example.Data.models.supervisorVisualiser.SupervisorProfile
-import com.example.Data.models.supervisorVisualiser.SupervisorSite
-import com.example.Data.models.workerVisualiser.*
+import com.example.UserPathways.Employee.workerVisualiser.*
+import com.example.UserPathways.employer.supervisorVisualiser.Location
+import com.example.UserPathways.employer.supervisorVisualiser.SupervisorProfile
+import com.example.UserPathways.employer.supervisorVisualiser.SupervisorSite
 import com.plcoding.security.hashing.SaltedHash
 
 class ObjectAdapters {
@@ -45,11 +44,9 @@ class ObjectAdapters {
         experience: Experience
     ): MutableMap<String, AttributeValue> {
         val itemValues = mutableMapOf<String, AttributeValue>()
-        itemValues["partitionKey"] = AttributeValue.S(experience.email)
-        itemValues["SortKey"] = AttributeValue.S("experience#${experience.typeofExperience}")
-        itemValues["typeofExperience"] = AttributeValue.S(experience.typeofExperience)
-        itemValues["ratingAggregate"] = AttributeValue.S(experience.ratingAggregate)
-        itemValues["previousRatingsFromSupervisors"] = AttributeValue.S(experience.previousRatingsFromSupervisors)
+        itemValues["partitionKey"] = AttributeValue.S("experience#${experience.experience}")
+        itemValues["SortKey"] = AttributeValue.S(experience.years.toString())
+        itemValues["typeofExperience"] = AttributeValue.S(experience.email)
         return itemValues
     }
 
@@ -97,7 +94,7 @@ class ObjectAdapters {
 
     /////////
     fun SignupInfoToItemValues(
-        WorkerSignupInfo: AuthRequestWithIsSupervisor,
+        WorkerSignupInfo: EmailPasswordIsSupervisor,
         saltedHash: SaltedHash
     ): MutableMap<String, AttributeValue> {
         val itemValues = mutableMapOf<String, AttributeValue>()
