@@ -11,7 +11,7 @@ import com.example.UserPathways.employer.supervisorVisualiser.Location
 import com.example.UserPathways.employer.supervisorVisualiser.SupervisorProfile
 import com.example.UserPathways.employer.supervisorVisualiser.SupervisorSite
 
-class WorkerDynamoObjectConverters {
+class WorkerAWSMapsToObjects {
 
     suspend fun dynamoResultToWorkerSite(request: GetItemRequest): WorkerSite {
         val result = AWSHelperFunctions().GetItem(request)!!
@@ -81,9 +81,16 @@ class WorkerDynamoObjectConverters {
     }
     fun dynamoResultToExperience(item: Map<String, AttributeValue>): Experience {
         return Experience(
-            experience = item["partitionKey"]?.asS().toString().split("#").last(),
+            email = item["partitionKey"]?.asS().toString(),
+            experience = item["SortKey"]?.asS().toString().split("#")[1],
+            years = item["years"]?.asS().toString().toInt(),
+        )
+    }
+    fun dynamoResultToExperienceFromSearch(item: Map<String, AttributeValue>): Experience {
+        return Experience(
+            experience = item["partitionKey"]?.asS().toString().split("#")[1],
             years = item["SortKey"]?.asS().toString().toInt(),
-            email = item["ratingAggregate"]?.asS().toString(),
+            email = item["email"]?.asS().toString(),
         )
     }
     fun dynamoResultToSpecialLicence(item: Map<String, AttributeValue>): SpecialLicence {

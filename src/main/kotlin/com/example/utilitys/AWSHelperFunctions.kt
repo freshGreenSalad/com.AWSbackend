@@ -11,14 +11,14 @@ class AWSHelperFunctions {
 
     fun buildPutItemRequest(itemValues: MutableMap<String, AttributeValue>) =
         PutItemRequest {
-            tableName = "workerAppTable"
+            tableName = Constants.tableName
             item = itemValues
         }
 
     fun BuildGetItemRequest(keyToGet: MutableMap<String, AttributeValue>) =
         GetItemRequest {
             key = keyToGet
-            tableName = "workerAppTable"
+            tableName = Constants.tableName
         }
     //
 
@@ -49,12 +49,12 @@ class AWSHelperFunctions {
         return keyToGet
     }
 
-    fun returnQuerryRequest(attributeToFind:String): QueryRequest {
+    fun returnQuerryRequest(email: String, attributeToFind:String): QueryRequest {
         val attrValues = mutableMapOf<String, AttributeValue>()
-        attrValues[":partitionKey"] = AttributeValue.S("email")
+        attrValues[":partitionKey"] = AttributeValue.S(email)
         attrValues[":SortKey"] = AttributeValue.S(attributeToFind)
         return QueryRequest {
-            tableName = "workerAppTable"
+            tableName = Constants.tableName
             keyConditionExpression = "partitionKey = :partitionKey AND begins_with(SortKey, :SortKey)"
             this.expressionAttributeValues = attrValues
         }
@@ -70,7 +70,7 @@ class AWSHelperFunctions {
         val listOfLicence = mutableListOf<SpecialLicence>()
         if (result != null) {
             for (item in result) {
-                val specialLicence = WorkerDynamoObjectConverters().dynamoResultToSpecialLicence(item)
+                val specialLicence = WorkerAWSMapsToObjects().dynamoResultToSpecialLicence(item)
                 listOfLicence.add(specialLicence)
             }
         }

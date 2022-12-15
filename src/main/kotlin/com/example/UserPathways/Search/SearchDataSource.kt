@@ -8,6 +8,7 @@ import aws.sdk.kotlin.services.dynamodb.model.QueryRequest
 import com.example.UserPathways.Employee.workerVisualiser.WorkerProfile
 import com.example.UserPathways.Search.DataClasses.WorkerSearchQuery
 import com.example.utilitys.AWSHelperFunctions
+import com.example.utilitys.Constants
 
 class SearchDataSource: SearchWorkerInterface {
     override suspend fun SearchForWorker(workerSearchQuery: WorkerSearchQuery): List<WorkerProfile> {
@@ -18,7 +19,7 @@ class SearchDataSource: SearchWorkerInterface {
         attrValues[":SortKeyValTwo"] = AttributeValue.S(workerSearchQuery.upperBound.toString())
         val request = QueryRequest {
             limit = 5
-            tableName = "workerAppTable"
+            tableName = Constants.tableName
             keyConditionExpression = "partitionKey = :partitionKey AND SortKey BETWEEN :SortKeyValOne AND :SortKeyValTwo"
             this.expressionAttributeValues = attrValues
         }
@@ -34,7 +35,7 @@ class SearchDataSource: SearchWorkerInterface {
         val keyInitialisation = KeysAndAttributes{
             keys = keyList
         }
-        val mapOfKeysToTableName = mapOf("workerAppTable" to keyInitialisation)
+        val mapOfKeysToTableName = mapOf(Constants.tableName to keyInitialisation)
         val batchRequest = BatchGetItemRequest{
             requestItems = mapOfKeysToTableName
         }

@@ -2,10 +2,11 @@ package com.example.UserPathways.Search
 
 import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
 import com.example.UserPathways.Employee.workerVisualiser.WorkerProfile
+import com.example.utilitys.Constants
 
 class SearchObjectConverters {
     fun getBatchItemRequestToWorkerList( confusingshit:Map<String, List<Map<String, AttributeValue>>>?):List<WorkerProfile>{
-        val table  = confusingshit?.get("workerAppTable")!!
+        val table  = confusingshit?.get(Constants.tableName)!!
         val listOfWorkers:List<WorkerProfile> = emptyList()
         for (workerInAWS in table){
             val worker = workerConverter(workerInAWS)

@@ -15,6 +15,9 @@ import com.example.UserPathways.employer.SupervisorSiteInfo
 import com.example.UserPathways.employer.getWorkerS
 import com.example.UserPathways.hire.HireWorker
 import com.example.UserPathways.hire.interfaces.HireWorkerDataSourceInterface
+import com.example.UserPathways.notification.OneSignalInterface
+import com.example.UserPathways.notification.OneSignalServiceImplemention
+import com.example.UserPathways.notification.PushNotification
 import com.example.UserPathways.ses.testSendEmail
 import com.plcoding.security.hashing.HashingService
 import com.plcoding.security.token.TokenConfig
@@ -30,7 +33,8 @@ fun Application.configureRouting(
     tokenConfig: TokenConfig,
     SignupDataSource: signupLoginInterface,
     hireWorkerDataSource: HireWorkerDataSourceInterface,
-    searchWorkerDataSource: SearchWorkerInterface
+    searchWorkerDataSource: SearchWorkerInterface,
+    oneSignalInterface: OneSignalServiceImplemention
 ) {
     routing {
 
@@ -54,5 +58,7 @@ fun Application.configureRouting(
         HireWorker(hireWorkerDataSource)
 
         SearchWorkers(searchWorkerDataSource)
+
+        PushNotification(oneSignalInterface)
     }
 }

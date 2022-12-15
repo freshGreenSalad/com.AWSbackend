@@ -3,7 +3,8 @@ package com.example.awsServices.UserPathways
 import com.example.UserPathways.Employee.WorkerProfileDynamoDBInterface
 import com.example.Data.models.DriversLicence
 import com.example.UserPathways.Employee.workerVisualiser.*
-import com.example.utilitys.ObjectAdapters
+import com.example.utilitys.HashGenerator
+import com.example.utilitys.objectsToAWSMaps
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -19,7 +20,7 @@ fun Route.workerSiteInfo(
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
-        WorkerDataSource.putAWSItemValues(ObjectAdapters().WorkerSiteToItemValuesMap(request))
+        WorkerDataSource.putAWSItemValues(objectsToAWSMaps().WorkerSiteToItemValuesMap(request))
         call.respond(HttpStatusCode.OK)
     }
     authenticate {
@@ -41,7 +42,7 @@ fun Route.WorkerSpecialLicence(
         val request = call.receiveOrNull<SpecialLicence>() ?: kotlin.run { call.respond(HttpStatusCode.BadRequest)
             return@post
         }
-        WorkerDataSource.putAWSItemValues(ObjectAdapters().specialLicenceToItemValues(request))
+        WorkerDataSource.putAWSItemValues(objectsToAWSMaps().specialLicenceToItemValues(request))
         call.respond(HttpStatusCode.OK)
     }
     authenticate {
@@ -64,7 +65,7 @@ fun Route.DatesWorked(
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
-        WorkerDataSource.putAWSItemValues(ObjectAdapters().DatesWorkedToItemValues(request))
+        WorkerDataSource.putAWSItemValues(objectsToAWSMaps().DatesWorkedToItemValues(request))
         call.respond(HttpStatusCode.OK)
     }
     authenticate {
@@ -87,7 +88,7 @@ fun Route.WorkerDriversLicence(
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
-        WorkerDataSource.putAWSItemValues(ObjectAdapters().MapWorkerLicenceToItemValues(request))
+        WorkerDataSource.putAWSItemValues(objectsToAWSMaps().MapWorkerLicenceToItemValues(request))
         call.respond(HttpStatusCode.OK)
     }
     authenticate {
@@ -106,11 +107,14 @@ fun Route.WorkerExperience(
     WorkerDataSource: WorkerProfileDynamoDBInterface
 ) {
     post("WorkerExperience") {
-        val request = call.receiveOrNull<Experience>() ?: kotlin.run {
+        val experience = call.receiveOrNull<Experience>() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
-        WorkerDataSource.putAWSItemValues(ObjectAdapters().WorkerExperienceToItemValues(request))
+        val hash = HashGenerator().getRandomString(8)
+        val partitionkey = "experience#${experience.experience}#$hash"
+        WorkerDataSource.putAWSItemValues(objectsToAWSMaps().WorkerExperienceToItemValues(experience,partitionkey))
+        WorkerDataSource.putAWSItemValues(objectsToAWSMaps().WorkerSearchableExperienceToItemValues(experience,partitionkey))
         call.respond(HttpStatusCode.OK)
     }
     authenticate {
@@ -133,7 +137,7 @@ fun Route.WorkerPersonalData(
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
-        WorkerDataSource.putAWSItemValues(ObjectAdapters().workerProfileToItemValues(request))
+        WorkerDataSource.putAWSItemValues(objectsToAWSMaps().workerProfileToItemValues(request))
         call.respond(HttpStatusCode.OK)
     }
     authenticate {

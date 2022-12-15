@@ -8,8 +8,9 @@ import com.example.Data.models.DriversLicence
 import com.example.UserPathways.Employee.workerVisualiser.*
 import com.example.utilitys.wrapperClasses.AwsResultWrapper
 import com.example.utilitys.AWSHelperFunctions
-import com.example.utilitys.ObjectAdapters
-import com.example.utilitys.WorkerDynamoObjectConverters
+import com.example.utilitys.Constants
+import com.example.utilitys.objectsToAWSMaps
+import com.example.utilitys.WorkerAWSMapsToObjects
 import com.plcoding.security.hashing.SaltedHash
 
 class WorkerProfileDynamoDBDataSource(
@@ -19,7 +20,7 @@ class WorkerProfileDynamoDBDataSource(
         saltedHash: SaltedHash
     ): Boolean {
         return try {
-            val itemValues = ObjectAdapters().SignupInfoToItemValues(WorkerSignupInfo, saltedHash)
+            val itemValues = objectsToAWSMaps().SignupInfoToItemValues(WorkerSignupInfo, saltedHash)
             val request = AWSHelperFunctions().buildPutItemRequest(itemValues)
             AWSHelperFunctions().PutObject(request)
             true
@@ -37,7 +38,7 @@ class WorkerProfileDynamoDBDataSource(
         return try {
             val keyToGet = AWSHelperFunctions().KeyToGet(email,"signIn")
             val request = AWSHelperFunctions().BuildGetItemRequest(keyToGet)
-            val authSaltPasswordEmail = WorkerDynamoObjectConverters().dynamoResultToDriverslicence(request, email)
+            val authSaltPasswordEmail = WorkerAWSMapsToObjects().dynamoResultToDriverslicence(request, email)
             return AwsResultWrapper.Success(data = authSaltPasswordEmail)
         } catch (e: Exception) {
             AwsResultWrapper.Fail()
@@ -48,7 +49,7 @@ class WorkerProfileDynamoDBDataSource(
         return try {
             val keyToGet = AWSHelperFunctions().KeyToGet(email,"driversLicence")
             val request = AWSHelperFunctions().BuildGetItemRequest(keyToGet)
-            val workerSite = WorkerDynamoObjectConverters().dynamoResultToDriverslicence(request)
+            val workerSite = WorkerAWSMapsToObjects().dynamoResultToDriverslicence(request)
             AwsResultWrapper.Success(data = workerSite)
         } catch (e: Exception) {
             AwsResultWrapper.Fail()
@@ -59,7 +60,7 @@ class WorkerProfileDynamoDBDataSource(
         return try {
             val keyToGet = AWSHelperFunctions().KeyToGet(email,"site")
             val request = AWSHelperFunctions().BuildGetItemRequest(keyToGet)
-            val workerSite = WorkerDynamoObjectConverters().dynamoResultToWorkerSite(request)
+            val workerSite = WorkerAWSMapsToObjects().dynamoResultToWorkerSite(request)
             return AwsResultWrapper.Success(data = workerSite)
         } catch (e: Exception) {
             AwsResultWrapper.Fail()
@@ -70,7 +71,7 @@ class WorkerProfileDynamoDBDataSource(
         return try {
             val keyToGet = AWSHelperFunctions().KeyToGet(email,"datesWorked")
             val request = AWSHelperFunctions().BuildGetItemRequest(keyToGet)
-            val datesWorked = WorkerDynamoObjectConverters().dynamoResultToDatesWorked(request)
+            val datesWorked = WorkerAWSMapsToObjects().dynamoResultToDatesWorked(request)
             return AwsResultWrapper.Success(data = datesWorked)
         } catch (e: Exception) {
             AwsResultWrapper.Fail()
@@ -82,7 +83,7 @@ class WorkerProfileDynamoDBDataSource(
         val request = AWSHelperFunctions().BuildGetItemRequest(keyToGet)
         val item = AWSHelperFunctions().GetItem(request)!!
         return try {
-            val personal = WorkerDynamoObjectConverters().dynamoMapToWorkerProfile(item)
+            val personal = WorkerAWSMapsToObjects().dynamoMapToWorkerProfile(item)
             return AwsResultWrapper.Success(data = personal)
         } catch (e: Exception) {
             AwsResultWrapper.Success(WorkerProfile("","","","",56))
@@ -91,7 +92,7 @@ class WorkerProfileDynamoDBDataSource(
 
     override suspend fun getWorkerSpecialLicence(email: String): AwsResultWrapper<MutableList<SpecialLicence>> {
         return try {
-        val request = AWSHelperFunctions().returnQuerryRequest("licence")
+        val request = AWSHelperFunctions().returnQuerryRequest(email = email,"licence" )
         val result = AWSHelperFunctions().AWSQuerry(request)
             val listOfLicence = AWSHelperFunctions().addQueeryResultsintoSingleListOfObjects(result)
             AwsResultWrapper.Success(listOfLicence)
@@ -102,12 +103,12 @@ class WorkerProfileDynamoDBDataSource(
 
     override suspend fun getWorkerExperience(email: String): AwsResultWrapper<MutableList<Experience>> {
         return try {
-            val request = AWSHelperFunctions().returnQuerryRequest("experience")
+            val request = AWSHelperFunctions().returnQuerryRequest(email = email, "experience")
             val listOfExperience = mutableListOf<Experience>()
             val result = AWSHelperFunctions().AWSQuerry(request)
             if (result != null) {
                 for (item in result) {
-                    val experience = WorkerDynamoObjectConverters().dynamoResultToExperience(item)
+                    val experience = WorkerAWSMapsToObjects().dynamoResultToExperience(item)
                     listOfExperience.add(experience)
                 }
             }
@@ -122,7 +123,7 @@ class WorkerProfileDynamoDBDataSource(
         attrValues[":SortKey"] = AttributeValue.S("personal#worker")
         val request = QueryRequest {
             limit = 5
-            tableName = "workerAppTable"
+            tableName = Constants.tableName
             indexName = "reverseLookup"
             keyConditionExpression = "SortKey = :SortKey"
             this.expressionAttributeValues = attrValues
@@ -132,7 +133,7 @@ class WorkerProfileDynamoDBDataSource(
         if (items != null) {
             for (worker in items) {
                 listOfWorkers.add(
-                    WorkerDynamoObjectConverters().dynamoMapToWorkerProfile(worker)
+                    WorkerAWSMapsToObjects().dynamoMapToWorkerProfile(worker)
                 )
             }
         }
@@ -145,7 +146,7 @@ class WorkerProfileDynamoDBDataSource(
         attrValues[":partitionKey"] = AttributeValue.S(email)
 
         val queryRequest = QueryRequest {
-            tableName = "workerAppTable"
+            tableName = Constants.tableName
             keyConditionExpression = "partitionKey = :partitionKey"
             this.expressionAttributeValues = attrValues
         }
@@ -159,7 +160,7 @@ class WorkerProfileDynamoDBDataSource(
                         keyToGet["SortKey"] = item["SortKey"]?.let { AttributeValue.S(it.asS()) }!!
                         val request = DeleteItemRequest {
                             key = keyToGet
-                            tableName = "workerAppTable"
+                            tableName = Constants.tableName
                         }
                         DynamoDbClient { region = "ap-southeast-2" }.use { db ->
                             db.deleteItem(request)

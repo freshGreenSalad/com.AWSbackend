@@ -9,7 +9,7 @@ import com.example.UserPathways.employer.supervisorVisualiser.SupervisorProfile
 import com.example.UserPathways.employer.supervisorVisualiser.SupervisorSite
 import com.plcoding.security.hashing.SaltedHash
 
-class ObjectAdapters {
+class objectsToAWSMaps {
 
     fun MapWorkerLicenceToItemValues(licence: DriversLicence): MutableMap<String, AttributeValue> {
         val itemValues = mutableMapOf<String, AttributeValue>()
@@ -40,13 +40,21 @@ class ObjectAdapters {
         return itemValues
     }
 
-    fun WorkerExperienceToItemValues(
-        experience: Experience
+    fun WorkerExperienceToItemValues(experience: Experience, reference:String
     ): MutableMap<String, AttributeValue> {
         val itemValues = mutableMapOf<String, AttributeValue>()
-        itemValues["partitionKey"] = AttributeValue.S("experience#${experience.experience}")
+        itemValues["partitionKey"] = AttributeValue.S(experience.email)
+        itemValues["SortKey"] = AttributeValue.S(reference)
+        itemValues["years"] = AttributeValue.S(experience.years.toString())
+        return itemValues
+    }
+
+    fun WorkerSearchableExperienceToItemValues(experience: Experience, partitionKey:String
+    ): MutableMap<String, AttributeValue>{
+        val itemValues = mutableMapOf<String, AttributeValue>()
+        itemValues["partitionKey"] = AttributeValue.S(partitionKey)
         itemValues["SortKey"] = AttributeValue.S(experience.years.toString())
-        itemValues["typeofExperience"] = AttributeValue.S(experience.email)
+        itemValues["email"] = AttributeValue.S(experience.email)
         return itemValues
     }
 
@@ -92,10 +100,7 @@ class ObjectAdapters {
         return itemValues
     }
 
-    /////////
-    fun SignupInfoToItemValues(
-        WorkerSignupInfo: EmailPasswordIsSupervisor,
-        saltedHash: SaltedHash
+    fun SignupInfoToItemValues(WorkerSignupInfo: EmailPasswordIsSupervisor, saltedHash: SaltedHash
     ): MutableMap<String, AttributeValue> {
         val itemValues = mutableMapOf<String, AttributeValue>()
 

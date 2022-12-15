@@ -4,7 +4,7 @@ import com.example.UserPathways.LoginSignup.Auth.EmailPasswordIsSupervisor
 import com.example.UserPathways.LoginSignup.Auth.SaltPasswordEmailIsSupervisor
 import com.example.utilitys.wrapperClasses.AwsResultWrapper
 import com.example.utilitys.AWSHelperFunctions
-import com.example.utilitys.ObjectAdapters
+import com.example.utilitys.objectsToAWSMaps
 import com.plcoding.security.hashing.SaltedHash
 
 class SignupLoginDataSource(): signupLoginInterface {
@@ -27,7 +27,7 @@ class SignupLoginDataSource(): signupLoginInterface {
 
     override suspend fun signup(Authrequest: EmailPasswordIsSupervisor, saltedHash: SaltedHash): Boolean {
         return try{
-            val itemValues = ObjectAdapters().SignupInfoToItemValues(Authrequest, saltedHash)
+            val itemValues = objectsToAWSMaps().SignupInfoToItemValues(Authrequest, saltedHash)
             val request = AWSHelperFunctions().buildPutItemRequest(itemValues)
             AWSHelperFunctions().PutObject(request)
             true

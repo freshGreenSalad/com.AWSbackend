@@ -4,8 +4,8 @@ import com.example.UserPathways.employer.supervisorVisualiser.SupervisorProfile
 import com.example.UserPathways.employer.supervisorVisualiser.SupervisorSite
 import com.example.utilitys.wrapperClasses.AwsResultWrapper
 import com.example.utilitys.AWSHelperFunctions
-import com.example.utilitys.ObjectAdapters
-import com.example.utilitys.WorkerDynamoObjectConverters
+import com.example.utilitys.objectsToAWSMaps
+import com.example.utilitys.WorkerAWSMapsToObjects
 
 class SupervisorProfileDynamoDBDataSource(
 ) : SupervisorProfileDynamoDBInterface {
@@ -13,7 +13,7 @@ class SupervisorProfileDynamoDBDataSource(
         supervisorSite: SupervisorSite
     ) {
         try {
-        val itemValues = ObjectAdapters().SiteAddressToItemValues(supervisorSite)
+        val itemValues = objectsToAWSMaps().SiteAddressToItemValues(supervisorSite)
         val request = AWSHelperFunctions().buildPutItemRequest(itemValues)
             AWSHelperFunctions().PutObject(request)
         } catch (e: Exception) {
@@ -25,7 +25,7 @@ class SupervisorProfileDynamoDBDataSource(
         supervisorProfile: SupervisorProfile
     ) {
         try {
-            val itemValues = ObjectAdapters().supervisorProfiletoItemvalues(supervisorProfile)
+            val itemValues = objectsToAWSMaps().supervisorProfiletoItemvalues(supervisorProfile)
             val request = AWSHelperFunctions().buildPutItemRequest(itemValues)
             AWSHelperFunctions().PutObject(request)
         } catch (e: Exception) {
@@ -37,7 +37,7 @@ class SupervisorProfileDynamoDBDataSource(
         return try {
         val keyToGet = AWSHelperFunctions().KeyToGet(email, "site")
         val request = AWSHelperFunctions().BuildGetItemRequest(keyToGet)
-        val workerSite = WorkerDynamoObjectConverters().dynamoResultToSupervisorSite(request)
+        val workerSite = WorkerAWSMapsToObjects().dynamoResultToSupervisorSite(request)
             AwsResultWrapper.Success(workerSite)
         } catch (e: Exception) {
             AwsResultWrapper.Fail()
@@ -48,7 +48,7 @@ class SupervisorProfileDynamoDBDataSource(
         return try {
         val keyToGet = AWSHelperFunctions().KeyToGet(email, "personal")
         val request = AWSHelperFunctions().BuildGetItemRequest(keyToGet)
-            val personal = WorkerDynamoObjectConverters().dynamoResultTosupervisorProfile(request)
+            val personal = WorkerAWSMapsToObjects().dynamoResultTosupervisorProfile(request)
             AwsResultWrapper.Success(data = personal)
         } catch (e: Exception) {
             AwsResultWrapper.Fail()
