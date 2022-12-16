@@ -1,12 +1,11 @@
-package com.example.UserPathways.notification
+package com.example.UserPathways.notification.notificationDataClasses
 
+import com.example.UserPathways.notification.NotificationMessage
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Notification(
-    // @SerialName("include_external_user_ids")
-    // val includeExternalUserIds: List<String>,
     @SerialName("included_segments")
     val includedSegments: List<String>,
     val contents: NotificationMessage,

@@ -2,7 +2,7 @@ package com.example.UserPathways.Employee
 
 import aws.sdk.kotlin.services.dynamodb.DynamoDbClient
 import aws.sdk.kotlin.services.dynamodb.model.*
-import com.example.UserPathways.LoginSignup.Auth.EmailPasswordIsSupervisor
+import com.example.UserPathways.LoginSignup.Auth.EmailPasswordIsSupervisorPushId
 import com.example.UserPathways.LoginSignup.Auth.SaltPasswordEmailIsSupervisor
 import com.example.Data.models.DriversLicence
 import com.example.UserPathways.Employee.workerVisualiser.*
@@ -16,7 +16,7 @@ import com.plcoding.security.hashing.SaltedHash
 class WorkerProfileDynamoDBDataSource(
 ) : WorkerProfileDynamoDBInterface {
     override suspend fun putWorkerSignupInfo(
-        WorkerSignupInfo: EmailPasswordIsSupervisor,
+        WorkerSignupInfo: EmailPasswordIsSupervisorPushId,
         saltedHash: SaltedHash
     ): Boolean {
         return try {

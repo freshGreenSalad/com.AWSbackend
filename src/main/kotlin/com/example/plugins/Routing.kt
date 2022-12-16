@@ -53,7 +53,7 @@ fun Application.configureRouting(
         getWorkerS(WorkerProfileDataSource)
 
         LoginInfo(SignupDataSource, hashingService, tokenService,   tokenConfig)
-        SignupInfo(SignupDataSource,  hashingService, tokenService,  tokenConfig)
+        SignupInfo(SignupDataSource,  hashingService, tokenService,  tokenConfig,oneSignalInterface)
         deleteAccount(WorkerProfileDataSource)
         HireWorker(hireWorkerDataSource)
 

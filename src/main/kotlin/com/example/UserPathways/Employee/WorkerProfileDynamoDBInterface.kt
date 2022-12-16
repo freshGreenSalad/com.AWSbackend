@@ -1,7 +1,7 @@
 package com.example.UserPathways.Employee
 
 import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
-import com.example.UserPathways.LoginSignup.Auth.EmailPasswordIsSupervisor
+import com.example.UserPathways.LoginSignup.Auth.EmailPasswordIsSupervisorPushId
 import com.example.UserPathways.LoginSignup.Auth.SaltPasswordEmailIsSupervisor
 import com.example.Data.models.DriversLicence
 import com.example.UserPathways.Employee.workerVisualiser.*
@@ -9,7 +9,7 @@ import com.example.utilitys.wrapperClasses.AwsResultWrapper
 import com.plcoding.security.hashing.SaltedHash
 
 interface WorkerProfileDynamoDBInterface {
-    suspend fun putWorkerSignupInfo(WorkerSignupInfo: EmailPasswordIsSupervisor, saltedHash: SaltedHash):Boolean
+    suspend fun putWorkerSignupInfo(WorkerSignupInfo: EmailPasswordIsSupervisorPushId, saltedHash: SaltedHash):Boolean
     suspend fun putAWSItemValues(itemValues:  MutableMap<String, AttributeValue>)
 
     //new aws route from visualiser get worker

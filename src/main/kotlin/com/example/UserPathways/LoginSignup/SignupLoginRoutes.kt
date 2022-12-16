@@ -2,14 +2,17 @@ package com.example.UserPathways.LoginSignup
 
 import com.example.UserPathways.Employee.WorkerProfileDynamoDBInterface
 import com.example.UserPathways.LoginSignup.Auth.EmailPassword
-import com.example.UserPathways.LoginSignup.Auth.EmailPasswordIsSupervisor
+import com.example.UserPathways.LoginSignup.Auth.EmailPasswordIsSupervisorPushId
 import com.example.UserPathways.LoginSignup.Auth.TokinIsSupervisor
 import com.example.UserPathways.LoginSignup.Auth.SaltPasswordEmailIsSupervisor
+import com.example.UserPathways.notification.NotificationMessage
+import com.example.UserPathways.notification.OneSignalServiceImplemention
 import com.plcoding.security.hashing.HashingService
 import com.plcoding.security.hashing.SaltedHash
 import com.plcoding.security.token.TokenClaim
 import com.plcoding.security.token.TokenConfig
 import com.plcoding.security.token.TokenService
+import com.tamaki.workerapp.userPathways.notification.notificationDataClasses.NotificationToIndividualUser
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -53,10 +56,11 @@ fun Route.SignupInfo(
     signup: signupLoginInterface,
     hashingService: HashingService,
     tokenService: TokenService,
-    tokenConfig: TokenConfig
+    tokenConfig: TokenConfig,
+    oneSignal: OneSignalServiceImplemention
 ) {
     post("SignupInfo") {
-        val request = kotlin.runCatching { call.receiveNullable<EmailPasswordIsSupervisor>() }.getOrNull() ?: kotlin.run {
+        val request = kotlin.runCatching { call.receiveNullable<EmailPasswordIsSupervisorPushId>() }.getOrNull() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
@@ -66,6 +70,13 @@ fun Route.SignupInfo(
             return@post
         }
         val token = generateTokin(tokenService, tokenConfig, request)
+        val testNotification = NotificationToIndividualUser(
+            includePlayerIds = listOf(request.email),
+            contents = NotificationMessage("test"),
+            headings = NotificationMessage("test"),
+            appId = "d8f8fee0-faee-4efd-9125-5070286b5c82",
+        )
+        val successful = oneSignal.sendNotification(testNotification)
         call.respond(
             status = HttpStatusCode.OK,
             message = TokinIsSupervisor(
@@ -92,7 +103,7 @@ fun Route.deleteAccount(
 fun generateTokin(
     tokenService: TokenService,
     tokenConfig: TokenConfig,
-    request: EmailPasswordIsSupervisor
+    request: EmailPasswordIsSupervisorPushId
 ): String {
     val token = tokenService.generate(
         config = tokenConfig, TokenClaim(

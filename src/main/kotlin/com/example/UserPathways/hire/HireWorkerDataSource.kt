@@ -5,8 +5,10 @@ import com.example.utilitys.wrapperClasses.AwsResultWrapper
 import com.example.UserPathways.Employee.WorkerProfileDynamoDBDataSource
 import com.example.UserPathways.hire.adapters.HireObjectAdapters
 import com.example.UserPathways.hire.interfaces.HireWorkerDataSourceInterface
+import com.example.UserPathways.notification.OneSignalServiceImplemention
 import com.example.awsServices.UserPathways.hire.HireWorker
 import com.example.utilitys.AWSHelperFunctions
+import com.tamaki.workerapp.userPathways.notification.notificationDataClasses.NotificationToIndividualUser
 
 class HireWorkerDataSource(): HireWorkerDataSourceInterface {
 
@@ -38,6 +40,20 @@ class HireWorkerDataSource(): HireWorkerDataSourceInterface {
         else
         {
             AwsResultWrapper.Fail()}
+    }
+
+    override suspend fun pushNotificationToHiredWorker(hireWorker: HireWorker, oneSignalServiceImplemention: OneSignalServiceImplemention) {
+        //need to get sign in
+        try {
+            val workerloginDetails = WorkerProfileDynamoDBDataSource().getWorkerSignupAuth(hireWorker.WorkerEmail).data!!
+            val notification = NotificationToIndividualUser(
+                includePlayerIds = workerloginDetails.,
+                contents = ,
+                headings = ,
+                appId = ,
+            )
+            oneSignalServiceImplemention.sendNotification()
+        } catch (e:Exception){}
     }
 }
 

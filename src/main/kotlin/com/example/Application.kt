@@ -21,14 +21,7 @@ fun main(args: Array<String>): Unit =
 
 @Suppress("unused") // application.conf references the main function. This annotation prevents the IDE from marking it as unused.
 fun Application.module() {
-    val client = HttpClient(CIO){
-        /*install(ContentNegotiation) {
-            Json {
-                prettyPrint = true
-                isLenient = true
-            }
-        }*/
-    }
+    val client = HttpClient(CIO){}
     val apikey = environment.config.property("oneSignal.api_key").getString()
     val oneSignal = OneSignalServiceImplemention(client, apikey )
     val searchDataSource = SearchDataSource()

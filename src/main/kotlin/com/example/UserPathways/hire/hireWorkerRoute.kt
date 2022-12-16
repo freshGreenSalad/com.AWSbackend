@@ -19,13 +19,14 @@ fun Route.HireWorker(
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
+        dataSourceInterface.pushNotificationToHiredWorker(request)
         dataSourceInterface.addWorkerToSupervisorTeam(request)
         call.respond(HttpStatusCode.OK)
     }
 
     get ("hireWorker"){
-        val email = Json.decodeFromString<Email>(call.request.headers["email"]!!)
-        val response = dataSourceInterface.getListOfSavedWorkers(email.email).data?:"failed to get list"
+        val email = call.request.headers["email"]!!
+        val response = dataSourceInterface.getListOfSavedWorkers(email).data?:"failed to get list"
         call.respond(response)
     }
 }

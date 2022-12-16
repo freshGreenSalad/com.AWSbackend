@@ -1,7 +1,7 @@
 package com.example.utilitys
 
 import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
-import com.example.UserPathways.LoginSignup.Auth.EmailPasswordIsSupervisor
+import com.example.UserPathways.LoginSignup.Auth.EmailPasswordIsSupervisorPushId
 import com.example.Data.models.DriversLicence
 import com.example.UserPathways.Employee.workerVisualiser.*
 import com.example.UserPathways.employer.supervisorVisualiser.Location
@@ -100,7 +100,7 @@ class objectsToAWSMaps {
         return itemValues
     }
 
-    fun SignupInfoToItemValues(WorkerSignupInfo: EmailPasswordIsSupervisor, saltedHash: SaltedHash
+    fun SignupInfoToItemValues(WorkerSignupInfo: EmailPasswordIsSupervisorPushId, saltedHash: SaltedHash
     ): MutableMap<String, AttributeValue> {
         val itemValues = mutableMapOf<String, AttributeValue>()
 
@@ -109,6 +109,7 @@ class objectsToAWSMaps {
         itemValues["password"] = AttributeValue.S(saltedHash.hash)
         itemValues["salt"] = AttributeValue.S(saltedHash.salt)
         itemValues["isSupervisor"] = AttributeValue.Bool(WorkerSignupInfo.isSupervisor)
+        itemValues["pushId"] = AttributeValue.S(WorkerSignupInfo.pushId)
         return itemValues
     }
 

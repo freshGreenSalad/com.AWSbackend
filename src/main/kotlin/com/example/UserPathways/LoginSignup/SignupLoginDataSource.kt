@@ -1,6 +1,6 @@
 package com.example.UserPathways.LoginSignup
 
-import com.example.UserPathways.LoginSignup.Auth.EmailPasswordIsSupervisor
+import com.example.UserPathways.LoginSignup.Auth.EmailPasswordIsSupervisorPushId
 import com.example.UserPathways.LoginSignup.Auth.SaltPasswordEmailIsSupervisor
 import com.example.utilitys.wrapperClasses.AwsResultWrapper
 import com.example.utilitys.AWSHelperFunctions
@@ -25,7 +25,7 @@ class SignupLoginDataSource(): signupLoginInterface {
         }
     }
 
-    override suspend fun signup(Authrequest: EmailPasswordIsSupervisor, saltedHash: SaltedHash): Boolean {
+    override suspend fun signup(Authrequest: EmailPasswordIsSupervisorPushId, saltedHash: SaltedHash): Boolean {
         return try{
             val itemValues = objectsToAWSMaps().SignupInfoToItemValues(Authrequest, saltedHash)
             val request = AWSHelperFunctions().buildPutItemRequest(itemValues)
